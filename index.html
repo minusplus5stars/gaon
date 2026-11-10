@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>가온 · 삶의 중심 찾기</title>
+<meta name="description" content="사주·풍수·베딕 점성술로 삶의 중심을 찾는 가온의 도구 모음">
+<meta name="theme-color" content="#1C2742">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="가온">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700;900&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#EDF0F4; --card:#F9FAFC; --ink:#1C2742; --muted:#5A6580; --line:#CDD4DF; --soft:#E2E7EE;
+  --indigo:#2D4785; --seal:#BE3A22; --sealInk:#FFF6F2;
+  --f-hanja:"Noto Serif KR","Nanum Myeongjo",serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#0F141E; --card:#171E2B; --ink:#E2E7F0; --muted:#94A0B7; --line:#2B3446; --soft:#1F2737;
+  --indigo:#93AAE8; --seal:#E0654B; --sealInk:#1A0F0C; color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(48px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:14px}
+h1{font-family:var(--f-hanja);font-weight:900;font-size:38px;margin:0;line-height:1.05}
+h1 small{display:block;font-family:var(--f-body);font-weight:500;font-size:14px;color:var(--muted);margin-top:8px}
+.hanmark{font-family:var(--f-hanja);font-size:14px;color:var(--muted);writing-mode:vertical-rl;letter-spacing:.25em}
+h2{font-family:var(--f-hanja);font-size:20px;margin:0 0 4px;display:flex;align-items:baseline;gap:8px}
+h2 span{font-size:13px;color:var(--muted);font-family:var(--f-hanja);font-weight:500}
+.sec p.lead{margin:0 0 12px;color:var(--muted);font-size:14px}
+.tools{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+a.tool,div.tool{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:14px;color:inherit;text-decoration:none}
+a.tool:hover{border-color:var(--indigo)}
+a.tool:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+.seal{flex:none;width:40px;height:40px;background:var(--seal);color:var(--sealInk);font-family:var(--f-hanja);font-weight:900;font-size:18px;display:grid;place-items:center;border-radius:5px;transform:rotate(-4deg)}
+div.tool{opacity:.6}
+div.tool .seal{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1.5px var(--line);transform:none}
+.tool b{display:block;font-size:15px}
+.tool small{display:block;color:var(--muted);font-size:13px;line-height:1.45}
+.tag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:999px;padding:0 8px;margin-left:4px;color:var(--muted);font-weight:500}
+.about{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--seal);border-radius:6px;padding:16px}
+.about p{margin:0 0 6px}
+footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>가온<small>삶의 중심 찾기 · 사주 · 풍수 · 베딕 점성술</small></h1>
+    <div class="hanmark">中心</div>
+  </header>
+
+  <section class="about">
+    <p><b>가온</b>은 '가운데, 중심'을 뜻하는 우리말이에요.</p>
+    <p class="lead" style="margin:0;color:var(--muted);font-size:14px">동양 명리와 베딕 점성술을 함께 보며, 날짜·공간·마음의 균형을 찾는 도구를 모았습니다.</p>
+  </section>
+
+  <section class="sec">
+    <h2>사주<span>四柱</span></h2>
+    <p class="lead">생년월일시로 원국을 세우고 좋은 날과 흐름을 봅니다.</p>
+    <div class="tools">
+      <a class="tool" href="/taegil/"><span class="seal">擇</span><span><b>가온 택일</b><small>이사·출산 날짜를 가족 사주와 일진으로 고르기</small></span></a>
+      <div class="tool"><span class="seal">柱</span><span><b>차트 세우기<span class="tag">준비 중</span></b><small>사주 원국과 대운 보기</small></span></div>
+      <div class="tool"><span class="seal">旅</span><span><b>여행 길일 찾기<span class="tag">준비 중</span></b><small>떠나기 좋은 날 고르기</small></span></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>공간 · 풍수<span>風水</span></h2>
+    <p class="lead">사는 곳과 방 배치를 사주에 맞춥니다.</p>
+    <div class="tools">
+      <div class="tool"><span class="seal">宅</span><span><b>사주 공간 처방<span class="tag">준비 중</span></b><small>이사 방위·지역 적합도·방별 처방</small></span></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>베딕 점성술<span>Jyotiṣa</span></h2>
+    <p class="lead">인도 점성술로 출생 차트를 읽습니다.</p>
+    <div class="tools">
+      <div class="tool"><span class="seal">☉</span><span><b>조티샤 차트<span class="tag">준비 중</span></b><small>출생 차트 세우기</small></span></div>
+      <div class="tool"><span class="seal">三</span><span><b>삼원 차트<span class="tag">준비 중</span></b><small>세 갈래로 보는 차트</small></span></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>오행 · 마음<span>五行</span></h2>
+    <p class="lead">하루의 균형과 마음을 돌봅니다.</p>
+    <div class="tools">
+      <div class="tool"><span class="seal">息</span><span><b>오행 명상 진단<span class="tag">준비 중</span></b><small>지금 내게 필요한 오행 명상</small></span></div>
+      <div class="tool"><span class="seal">勇</span><span><b>오늘의 용기 한 마디<span class="tag">준비 중</span></b><small>매일 한 줄의 응원</small></span></div>
+    </div>
+  </section>
+
+  <footer>© 가온 · 입력한 정보는 이 기기 안에만 저장되고 서버로 보내지지 않아요.</footer>
+</div>
+<script>
+if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))}
+</script>
+</body>
+</html>

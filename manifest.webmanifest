@@ -1,0 +1,19 @@
+{
+  "name": "가온 · 삶의 중심 찾기",
+  "short_name": "가온",
+  "description": "사주·풍수·베딕 점성술로 삶의 중심을 찾는 가온의 도구 모음",
+  "lang": "ko",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#EDF0F4",
+  "theme_color": "#1C2742",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "가온 택일", "url": "/taegil/", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

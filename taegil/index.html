@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>가온 택일</title>
+<meta name="description" content="이사·출산 날짜를 사주와 일진으로 고르는 책력">
+<meta name="theme-color" content="#1C2742">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="가온">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700;900&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: 책력(冊曆) 한 권 — 쪽빛 먹색 위에 순위마다 주홍 낙관, 단일 칼럼 */
+:root{
+  --paper:#EDF0F4; --card:#F9FAFC; --ink:#1C2742; --muted:#5A6580; --line:#CDD4DF; --soft:#E2E7EE;
+  --indigo:#2D4785; --seal:#BE3A22; --sealInk:#FFF6F2;
+  --wood:#3B7A4C; --fire:#C0402A; --earth:#9E7426; --metal:#6B7382; --water:#23457A;
+  --good:#2F7A52; --warn:#B26A12; --bad:#B23A3A;
+  --f-hanja:"Noto Serif KR","Nanum Myeongjo",serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0F141E; --card:#171E2B; --ink:#E2E7F0; --muted:#94A0B7; --line:#2B3446; --soft:#1F2737;
+  --indigo:#93AAE8; --seal:#E0654B; --sealInk:#1A0F0C;
+  --wood:#72C287; --fire:#F08470; --earth:#D9B464; --metal:#B9C1CD; --water:#82A8E2;
+  --good:#6CC495; --warn:#E3A552; --bad:#EE7B7B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0F141E; --card:#171E2B; --ink:#E2E7F0; --muted:#94A0B7; --line:#2B3446; --soft:#1F2737;
+  --indigo:#93AAE8; --seal:#E0654B; --sealInk:#1A0F0C;
+  --wood:#72C287; --fire:#F08470; --earth:#D9B464; --metal:#B9C1CD; --water:#82A8E2;
+  --good:#6CC495; --warn:#E3A552; --bad:#EE7B7B; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:max(20px,env(safe-area-inset-top,0px));padding-bottom:max(48px,env(safe-area-inset-bottom,0px))}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.home{font-size:13px;color:var(--muted);text-decoration:none;font-weight:500;margin-bottom:-12px}
+.home:hover{color:var(--ink)}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:12px}
+h1{font-family:var(--f-hanja);font-weight:900;font-size:30px;margin:0;letter-spacing:-.01em;line-height:1.1}
+h1 small{display:block;font-family:var(--f-body);font-weight:500;font-size:13px;color:var(--muted);letter-spacing:.02em;margin-top:6px}
+.hanmark{font-family:var(--f-hanja);font-size:13px;color:var(--muted);writing-mode:vertical-rl;letter-spacing:.2em;flex:none}
+h2{font-family:var(--f-hanja);font-size:20px;margin:0;text-wrap:balance}
+h3{font-size:14px;margin:0;color:var(--muted);font-weight:600;letter-spacing:.04em}
+.tabs{display:grid;grid-template-columns:1fr 1fr;border:1.5px solid var(--ink);border-radius:4px;overflow:hidden}
+.tabs button{all:unset;cursor:pointer;text-align:center;padding:11px 8px;font-weight:600;font-size:15px}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+.tabs button:focus-visible{outline:3px solid var(--seal);outline-offset:-3px}
+.sec{display:flex;flex-direction:column;gap:12px}
+.note{font-size:13px;color:var(--muted)}
+.box{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:14px}
+.member{display:flex;flex-direction:column;gap:10px}
+.mhead{display:flex;align-items:center;gap:8px}
+.rank{font-family:var(--f-num);font-size:12px;background:var(--ink);color:var(--paper);padding:2px 8px;border-radius:3px;flex:none}
+.mhead .sp{flex:1}
+.icon{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:4px;width:32px;height:30px;text-align:center;font-size:14px;color:var(--muted)}
+.icon:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--indigo);outline-offset:1px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:500;min-width:0}
+input,select{font:inherit;font-size:15px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:8px 9px;width:100%;min-width:0}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.chk input{width:auto}
+.btn{font:inherit;cursor:pointer;border-radius:4px;padding:11px 16px;font-weight:600;border:1.5px solid var(--ink);background:transparent;color:var(--ink)}
+.btn.primary{background:var(--seal);border-color:var(--seal);color:var(--sealInk);font-size:16px;width:100%}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.err{color:var(--bad);font-size:14px;font-weight:500}
+/* results */
+.res{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.ctop{display:flex;gap:14px;align-items:flex-start}
+.seal{flex:none;width:52px;height:52px;background:var(--seal);color:var(--sealInk);font-family:var(--f-hanja);font-weight:900;font-size:24px;display:grid;place-items:center;border-radius:5px;transform:rotate(-4deg);box-shadow:inset 0 0 0 3px var(--card),inset 0 0 0 4px var(--sealInk)}
+.ctitle{flex:1;min-width:0}
+.ctitle .d{font-family:var(--f-hanja);font-weight:700;font-size:21px;line-height:1.25}
+.ctitle .sub{font-size:13px;color:var(--muted)}
+.score{font-family:var(--f-num);font-size:26px;line-height:1;text-align:right;flex:none}
+.score small{display:block;font-family:var(--f-body);font-size:11px;color:var(--muted);margin-top:4px}
+.bars{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:84px 1fr 34px;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+.bar .t{height:7px;background:var(--soft);border-radius:4px;overflow:hidden}
+.bar .t i{display:block;height:100%;background:var(--indigo);border-radius:4px}
+.bar b{font-family:var(--f-num);font-weight:500;color:var(--ink);text-align:right}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--paper)}
+.chip.g{border-color:var(--good);color:var(--good)} .chip.w{border-color:var(--warn);color:var(--warn)} .chip.b{border-color:var(--bad);color:var(--bad)}
+.mlist{display:grid;gap:10px}
+.mfit{border-top:1px dashed var(--line);padding-top:10px;display:grid;gap:4px}
+.mfit .h{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:14px}
+.mfit .h span{font-family:var(--f-num);font-weight:500}
+.mfit ul{margin:0;padding-left:18px;font-size:13px;color:var(--muted)}
+.pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:340px}
+.pc{display:grid;gap:4px;text-align:center}
+.pc .lab{font-size:11px;color:var(--muted)}
+.cell{border:1px solid var(--line);border-radius:4px;padding:6px 2px 4px;background:var(--paper)}
+.cell .hz{font-family:var(--f-hanja);font-weight:700;font-size:24px;line-height:1.1}
+.cell .kr{font-size:10.5px;color:var(--muted)}
+.e0{color:var(--wood)}.e1{color:var(--fire)}.e2{color:var(--earth)}.e3{color:var(--metal)}.e4{color:var(--water)}
+.elbar{display:flex;height:10px;border-radius:5px;overflow:hidden;max-width:340px}
+.elbar i{display:block;height:100%}
+.ellegend{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.b0{background:var(--wood)}.b1{background:var(--fire)}.b2{background:var(--earth)}.b3{background:var(--metal)}.b4{background:var(--water)}
+.para{font-size:14px;max-width:65ch}
+.para p{margin:0 0 6px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.kv dt{color:var(--muted)} .kv dd{margin:0}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:460px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12px}
+td.n{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+tr.best td{background:var(--soft)}
+.mini{display:flex;flex-direction:column;gap:12px}
+.sub2{display:grid;gap:12px}
+@media (min-width:620px){.sub2{grid-template-columns:1fr 1fr}}
+.cand{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.cand summary{list-style:none;cursor:pointer}.cand summary::-webkit-details-marker{display:none}
+.cand summary:focus-visible{outline:2px solid var(--indigo);outline-offset:4px;border-radius:4px}
+.cand[open]{border-color:var(--indigo)}
+.cbody{display:flex;flex-direction:column;gap:14px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.seal.sm{width:38px;height:38px;font-size:16px;font-family:var(--f-num);background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink);transform:none}
+.more{font-size:12px;color:var(--indigo);margin-top:4px;font-weight:500}
+.more::after{content:" ▾"}.cand[open] .more::after{content:" ▴"}
+.duebox{border:1.5px solid var(--seal)}
+.duebox h2{color:var(--seal)}
+.foot{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+.foot p{margin:0 0 4px}
+@media (prefers-reduced-motion:no-preference){.card{animation:rise .35s ease both}@keyframes rise{from{transform:translateY(6px)}to{transform:none}}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="home" href="/">← 가온 홈</a>
+  <header>
+    <h1>가온 택일<small>이사·출산 날짜를 사주와 일진으로 고르는 책력</small></h1>
+    <div class="hanmark">擇日曆</div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-move" aria-selected="true">이사 택일</button>
+    <button role="tab" id="tab-birth" aria-selected="false">출산 택일</button>
+  </div>
+
+  <!-- 이사 -->
+  <section id="p-move" class="sec">
+    <div class="box sec duebox">
+      <h2>이사 예정일</h2>
+      <div class="grid">
+        <label class="f">이사 예정일<input type="date" id="mv-due"></label>
+        <label class="f">추천 범위
+          <select id="mv-range"><option value="7">예정일 ±7일</option><option value="14">예정일 ±14일</option><option value="30">예정일 ±30일</option></select></label>
+        <label class="f">이사 방향 (현재 집 → 새 집)
+          <select id="mv-dir">
+            <option value="none">모름 · 방향 추천받기</option>
+            <option value="N">북</option><option value="NE">북동</option><option value="E">동</option><option value="SE">남동</option>
+            <option value="S">남</option><option value="SW">남서</option><option value="W">서</option><option value="NW">북서</option>
+          </select></label>
+      </div>
+      <label class="chk"><input type="checkbox" id="mv-weekend"> 토·일요일만 보기</label>
+    </div>
+    <div class="row" style="justify-content:space-between"><h2>가족 사주 · 배려 순서</h2><span class="note">위에 있을수록 가중치가 큽니다</span></div>
+    <div id="members" class="sec"></div>
+    <button class="btn" id="addMember" type="button">+ 가족 추가 (최대 4명)</button>
+  </section>
+
+  <!-- 출산 -->
+  <section id="p-birth" class="sec" hidden>
+    <div class="box sec duebox">
+      <h2>출산 예정일</h2>
+      <div class="grid">
+        <label class="f">출산 예정일<input type="date" id="bt-due"></label>
+        <label class="f">추천 범위
+          <select id="bt-range"><option value="7">예정일 전 1주 이내</option><option value="14">예정일 전 2주 이내</option><option value="21">예정일 전 3주 이내</option></select></label>
+        <label class="f">아이 성별 (대운 방향)
+          <select id="bt-sex"><option value="U">모름</option><option value="M">남아</option><option value="F">여아</option></select></label>
+        <label class="f">가능 시간 시작<input type="time" id="bt-hs"></label>
+        <label class="f">가능 시간 끝<input type="time" id="bt-he"></label>
+      </div>
+      <p class="note" style="margin:0">예정일과 그 이전 범위 안에서만 추천해요. 범위는 담당 의사가 안전하다고 한 주수 안에서 골라 주세요.</p>
+    </div>
+    <h2>부모 사주</h2>
+    <div id="parents" class="sec"></div>
+  </section>
+
+  <div class="box"><label class="chk"><input type="checkbox" id="opt-correct"> 동경 127° 기준 시각 보정 (약 −32분, 시주 경계에 적용)</label></div>
+  <button class="btn primary" id="run" type="button">택일 계산</button>
+  <div id="err" class="err" hidden></div>
+  <div id="out" class="res"></div>
+
+  <div class="foot">
+    <p>절기는 태양 황경, 손없는날은 합삭(신월) 시각으로 직접 계산합니다. 자시는 23시부터 다음 날로 봅니다. 1987–88년 서머타임과 1954–61년 표준시는 자동 반영됩니다.</p>
+    <p>용신은 오행 비중과 월령·조후를 단순화한 추정입니다. 상담 시 원국 판단으로 보정해 쓰세요.</p>
+    <p>입력한 정보는 이 기기 안에만 저장되고 서버로 보내지지 않아요.</p>
+  </div>
+</div>
+
+<script>
+/* ===== 기초 데이터 ===== */
+const STEMS='甲乙丙丁戊己庚辛壬癸', STEMS_K='갑을병정무기경신임계';
+const BR='子丑寅卯辰巳午未申酉戌亥', BR_K='자축인묘진사오미신유술해';
+const STEM_EL=[0,0,1,1,2,2,3,3,4,4], BR_EL=[4,2,0,0,2,1,1,2,3,3,2,4];
+const BR_MAIN=[9,5,0,1,4,2,3,5,6,7,4,8];
+const EL_K=['목','화','토','금','수'], EL_H='木火土金水';
+const EL_COLOR=['초록·청록, 원목','빨강·주황, 조명 밝게','베이지·황토, 도자기','흰색·은색, 금속 소품','남색·검정, 물·유리'];
+const GOD=[['비견','겁재'],['식신','상관'],['편재','정재'],['편관','정관'],['편인','정인']];
+const GRP=['비겁','식상','재성','관성','인성'];
+const DIRS=['N','NE','E','SE','S','SW','W','NW'], DIR_K={N:'북',NE:'북동',E:'동',SE:'남동',S:'남',SW:'남서',W:'서',NW:'북서'};
+const DIR_EL={N:4,NE:2,E:0,SE:0,S:1,SW:2,W:3,NW:3};
+const KUA={1:['SE','E','S','N'],2:['NE','W','NW','SW'],3:['S','N','SE','E'],4:['N','S','E','SE'],6:['W','NE','SW','NW'],7:['NW','SW','NE','W'],8:['SW','NW','W','NE'],9:['E','SE','N','S']};
+const KUA_N=['생기','천의','연년','복위'], KUA_MEAN=['활력·성장','건강·회복','화합·안정','집중·평온'];
+const GWIIN={0:[1,7],4:[1,7],6:[1,7],1:[0,8],5:[0,8],2:[11,9],3:[11,9],7:[2,6],8:[3,5],9:[3,5]};
+const ROLES=['본인','배우자','아이','어르신','환자(아픈 가족)','임산부','기타'];
+const ROLE_CAT={'아이':'child','어르신':'elder','환자(아픈 가족)':'sick','임산부':'preg'};
+const PLACE_PREF={sick:[1,0,2,3],elder:[1,2,0,3],child:[0,3,1,2],preg:[1,2,0,3],adult:[2,0,1,3]};
+const DM_TXT=['곧고 원칙이 분명한 리더형. 한번 정한 방향으로 꾸준히 자라는 힘이 있어요.','부드럽고 적응력이 좋아 어디서든 뿌리를 내려요. 관계 속에서 힘을 얻는 타입.','밝고 표현이 풍부해 주변을 환하게 해요. 열정이 크고 숨김이 적어요.','섬세하고 따뜻하며 한 가지에 깊이 몰입해요. 조용한 집중력이 강점.','듬직하고 포용력이 커서 믿음을 줘요. 결정은 신중하게 내리는 편.','꼼꼼하고 실속 있으며 남을 잘 챙겨요. 차근차근 쌓아 가는 타입.','결단력과 의리가 있고 추진력이 강해요. 옳다고 믿는 일에 곧장 움직여요.','감각이 예민하고 미적 기준이 높아요. 완성도를 중시하는 완벽주의 기질.','생각의 스케일이 크고 지혜로워요. 자유롭게 흐르며 넓게 배우는 타입.','직관과 공감 능력이 뛰어나요. 차분하게 상황을 읽고 스며들 듯 움직여요.'];
+const GOD_TXT={'비견':'자립심이 강하고 자기 페이스를 지켜요.','겁재':'승부욕과 행동력이 있어 경쟁 속에서 성장해요.','식신':'여유롭고 재능을 꾸준히 키워 가는 즐거움이 있어요.','상관':'말과 표현이 날카롭고 창의적이에요. 비판적 사고가 빨라요.','편재':'활동 반경이 넓고 사교적이에요. 기회를 잘 포착해요.','정재':'성실하고 관리 능력이 좋아요. 약속과 계획을 잘 지켜요.','편관':'책임감과 강단이 있어요. 스스로에게 엄격할 수 있어요.','정관':'규칙을 존중하고 신뢰를 주는 모범생 기질이에요.','편인':'독창적이고 직관이 뛰어나요. 남다른 관점을 가져요.','정인':'배우는 것을 좋아하고 받아들이는 그릇이 커요.'};
+const CAREER=['스포츠·전문 기술·독립 사업처럼 자기 실력으로 서는 분야','예술·콘텐츠·교육·요리·말하는 직업처럼 표현하고 만들어 내는 분야','경영·금융·유통·무역처럼 자원을 다루고 성과를 내는 분야','공직·법·행정·대기업 관리직처럼 조직과 책임을 맡는 분야','연구·학문·의료·상담·출판처럼 깊이 배우고 돌보는 분야'];
+
+/* ===== 수학·천문 ===== */
+const mod=(a,b)=>((a%b)+b)%b, RAD=Math.PI/180, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const argmax=a=>a.indexOf(Math.max(...a)), argmin=a=>a.indexOf(Math.min(...a));
+function jdUTC(y,m,d,h){if(m<=2){y--;m+=12}const A=Math.floor(y/100),B=2-A+Math.floor(A/4);return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+B-1524.5+h/24}
+const toJdn=(y,m,d)=>Math.round(jdUTC(y,m,d,12));
+function fromJdn(J){const a=J+32044,b=Math.floor((4*a+3)/146097),c=a-Math.floor(146097*b/4),d=Math.floor((4*c+3)/1461),e=c-Math.floor(1461*d/4),m=Math.floor((5*e+2)/153);return{y:100*b+d-4800+Math.floor(m/10),m:m+3-12*Math.floor(m/10),d:e-Math.floor((153*m+2)/5)+1}}
+function sunLon(jd){const T=(jd-2451545)/36525,L0=280.46646+36000.76983*T+0.0003032*T*T,M=(357.52911+35999.05029*T-0.0001537*T*T)*RAD;
+ const C=(1.914602-0.004817*T-0.000014*T*T)*Math.sin(M)+(0.019993-0.000101*T)*Math.sin(2*M)+0.000289*Math.sin(3*M),om=(125.04-1934.136*T)*RAD;
+ return mod(L0+C-0.00569-0.00478*Math.sin(om),360)}
+function newMoon(k){const T=k/1236.85,s=Math.sin;let j=2451550.09766+29.530588861*k+0.00015437*T*T;const E=1-0.002516*T,
+ M=(2.5534+29.1053567*k)*RAD,P=(201.5643+385.81693528*k+0.0107582*T*T)*RAD,F=(160.7108+390.67050284*k-0.0016118*T*T)*RAD,O=(124.7746-1.56375588*k)*RAD;
+ j+=-0.4072*s(P)+0.17241*E*s(M)+0.01608*s(2*P)+0.01039*s(2*F)+0.00739*E*s(P-M)-0.00514*E*s(P+M)+0.00208*E*E*s(2*M)-0.00111*s(P-2*F)-0.00057*s(P+2*F)+0.00056*E*s(2*P+M)-0.00042*s(3*P)+0.00042*E*s(M+2*F)+0.00038*E*s(M-2*F)-0.00024*E*s(2*P-M)-0.00017*s(O);
+ return j-69/86400}
+function lunarDay(jdn){const end=jdn+0.5-9/24;let k=Math.floor((jdn-2451550.1)/29.530588861);
+ while(newMoon(k+1)<=end)k++;while(newMoon(k)>end)k--;return jdn-Math.floor(newMoon(k)+0.5+9/24)+1}
+function sonDir(ld){return [null,'E','E','S','S','W','W','N','N',null][ld%10]}
+
+/* ===== 관계 ===== */
+const HYUNG=[[2,5],[5,8],[2,8],[1,10],[10,7],[1,7],[0,3]], SELFH=[4,6,9,11], WONJIN=[[0,7],[1,6],[2,9],[3,8],[4,11],[5,10]];
+const inPairs=(L,a,b)=>L.some(([x,y])=>(x===a&&y===b)||(x===b&&y===a));
+function brRel(a,b){const r=[];if(a===null||b===null)return r;
+ if((a+b)%12===1)r.push(['육합',12]);else if(a!==b&&a%4===b%4)r.push(['삼합',8]);
+ if(mod(a-b,12)===6)r.push(['충',-20]);
+ if(inPairs(HYUNG,a,b)||(a===b&&SELFH.includes(a)))r.push(['형',-8]);
+ if(a!==b&&(a+b)%12===7)r.push(['해',-6]);
+ if(inPairs(WONJIN,a,b))r.push(['원진',-8]);return r}
+const stemHe=(a,b)=>mod(a-b,10)===5, stemChong=(a,b)=>Math.abs(a-b)===6;
+const pname=(s,b)=>`${STEMS[s]}${BR[b]}`, pkr=(s,b)=>`${STEMS_K[s]}${BR_K[b]}`;
+const tenGod=(d,o)=>GOD[mod(STEM_EL[o]-STEM_EL[d],5)][(d%2)===(o%2)?0:1];
+
+/* ===== 사주 ===== */
+let S;
+function tz(y,m,d){const j=toJdn(y,m,d);let std=9;if(j>=toJdn(1954,3,21)&&j<toJdn(1961,8,10))std=8.5;let off=std;
+ if((j>=toJdn(1987,5,10)&&j<toJdn(1987,10,11))||(j>=toJdn(1988,5,8)&&j<toJdn(1988,10,9)))off+=1;return{std,off}}
+function kua(y,sex){if(sex!=='M'&&sex!=='F')return null;const r=x=>{while(x>9)x=String(x).split('').reduce((a,b)=>a+ +b,0);return x};const t=r(y%100);let k;
+ if(y<2000)k=sex==='M'?r(10-t):r(5+t);else k=sex==='M'?(9-t||9):r(6+t);if(k===5)k=sex==='M'?2:8;return k}
+function makeChart(y,m,d,hh,mm,known,sex){
+ const z=tz(y,m,d),clock=known?hh+mm/60:12,jdUT=jdUTC(y,m,d,clock-z.off);
+ const L=sunLon(jdUT),mo=Math.floor(mod(L-315,360)/30);let sy=y;if(m<=2&&mo>=10)sy--;
+ const yI=mod(sy-4,60),yStem=yI%10,yBr=yI%12,mBr=(mo+2)%12,mStem=mod(yStem*2+2+mo,10);
+ const t=jdUT+(S.correct?127/15:z.std)/24+0.5;let jdn=Math.floor(t);const lh=(t-jdn)*24;
+ if(!known)jdn=toJdn(y,m,d);if(known&&lh>=23)jdn++;
+ const dI=mod(jdn+49,60),dStem=dI%10,dBr=dI%12;let hStem=null,hBr=null;
+ if(known){hBr=Math.floor((lh+1)/2)%12;hStem=mod(dStem*2+hBr,10)}
+ const c={y,m,d,sy,jdUT,L,yStem,yBr,mStem,mBr,dStem,dBr,hStem,hBr,known,sex};analyze(c);return c}
+function analyze(c){
+ const w=[0,0,0,0,0];[c.yStem,c.mStem,c.dStem,c.hStem].forEach(s=>{if(s!==null)w[STEM_EL[s]]+=1});
+ [[c.yBr,1],[c.mBr,2],[c.dBr,1.2],[c.hBr,1]].forEach(([b,x])=>{if(b!==null)w[BR_EL[b]]+=x});
+ const tot=w.reduce((a,b)=>a+b,0),de=STEM_EL[c.dStem],g=i=>(de+i)%5;c.w=w;c.tot=tot;c.de=de;
+ c.ratio=(w[de]+w[g(4)])/tot;c.strong=c.ratio>=0.48;const fav=[0,0,0,0,0];
+ if(c.strong){const cand=[1,2,3].map(g).sort((a,b)=>w[a]-w[b]);fav[cand[0]]=1;fav[cand[1]]=0.6;fav[cand[2]]=0.3;
+  if(w[g(4)]>w[de]){fav[g(4)]=-1;fav[de]=-0.7}else{fav[de]=-1;fav[g(4)]=-0.7}}
+ else{const gw=g(3),useRes=w[gw]>=w[g(2)]&&w[gw]>=w[g(1)];const pr=useRes?g(4):(w[g(4)]<=w[de]?g(4):de),ot=pr===de?g(4):de;
+  fav[pr]=1;fav[ot]=0.6;const bad=[1,2,3].map(g).sort((a,b)=>w[b]-w[a]);fav[bad[0]]=-1;fav[bad[1]]=-0.6;fav[bad[2]]=-0.3}
+ if([5,6,7].includes(c.mBr)){fav[4]=Math.min(1,fav[4]+0.4);if(fav[1]>0)fav[1]-=0.3}
+ if([11,0,1].includes(c.mBr)){fav[1]=Math.min(1,fav[1]+0.4);if(fav[4]>0)fav[4]-=0.3}
+ c.fav=fav;c.yong=argmax(fav);c.gi=argmin(fav);
+ const gr=[0,0,0,0,0],add=(s,x)=>gr[mod(STEM_EL[s]-de,5)]+=x;
+ [c.yStem,c.mStem,c.hStem].forEach(s=>{if(s!==null)add(s,1)});
+ [[c.yBr,1],[c.mBr,1.5],[c.dBr,1.2],[c.hBr,1]].forEach(([b,x])=>{if(b!==null)add(BR_MAIN[b],x)});
+ c.groups=gr;c.kua=kua(c.sy,c.sex)}
+function daewoon(c,sex){
+ const fwd=((c.yStem%2===0)&&sex==='M')||((c.yStem%2===1)&&sex==='F');
+ const L=c.L,target=mod(fwd?15+30*Math.ceil((L-15)/30+1e-9):15+30*Math.floor((L-15)/30),360);
+ let est=c.jdUT+(fwd?1:-1)*(fwd?mod(target-L,360):mod(L-target,360))/0.98565;
+ for(let i=0;i<5;i++){const df=mod(target-sunLon(est)+180,360)-180;est+=df/0.98565}
+ const start=Math.max(1,Math.round(Math.abs(est-c.jdUT)/3)),list=[];
+ for(let k=1;k<=8;k++){const s=mod(c.mStem+(fwd?k:-k),10),b=mod(c.mBr+(fwd?k:-k),12);
+  const v=(c.fav[STEM_EL[s]]+1.2*c.fav[BR_EL[b]])/2.2;list.push({age:start+10*(k-1),s,b,v})}
+ return{fwd,start,list}}
+function dayPillarOf(jdn){const jd=jdn-0.375,L=sunLon(jd),mo=Math.floor(mod(L-315,360)/30),dt=fromJdn(jdn);let sy=dt.y;if(dt.m<=2&&mo>=10)sy--;
+ const yI=mod(sy-4,60),dI=mod(jdn+49,60);return{dt,yStem:yI%10,yBr:yI%12,mBr:(mo+2)%12,ds:dI%10,db:dI%12}}
+
+/* ===== 입력 파싱 ===== */
+function parseP(p,label){
+ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(p.date||'');if(!m)return{err:`${label}의 생년월일을 입력해 주세요.`};
+ let hh=12,mm=0,known=!p.noTime&&!!p.time;if(known){const t=/^(\d{2}):(\d{2})/.exec(p.time);if(!t)known=false;else{hh=+t[1];mm=+t[2]}}
+ const y=+m[1];if(y<1920||y>2100)return{err:`${label}의 연도는 1920~2100년 사이로 입력해 주세요.`};
+ return{c:makeChart(y,+m[2],+m[3],hh,mm,known,p.sex)}}
+const dParse=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||'');return m?toJdn(+m[1],+m[2],+m[3]):null};
+const dStr=j=>{const d=fromJdn(j);return `${d.y}년 ${d.m}월 ${d.d}일`};
+const WD='일월화수목금토', wday=j=>WD[(j+1)%7];
+const relDue=(j,due)=>j===due?'예정일 당일':j<due?`예정일 ${due-j}일 전`:`예정일 ${j-due}일 후`;
+const iso=dt=>`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+
+/* ===== 이사 ===== */
+function moveFit(c,ds,db){let s=0;const n=[];
+ brRel(db,c.dBr).forEach(([k,v])=>{s+=v;n.push([`일지 ${BR[c.dBr]}와 ${k}`,v])});
+ brRel(db,c.yBr).forEach(([k,v])=>{if(k==='육합'||k==='충'){s+=v*0.5;n.push([`띠(${BR[c.yBr]})와 ${k}`,v])}});
+ if(stemHe(ds,c.dStem)){s+=6;n.push([`일간 ${STEMS[c.dStem]}와 천간합`,6])}
+ if(stemChong(ds,c.dStem)){s-=8;n.push([`일간 ${STEMS[c.dStem]}와 천간충`,-8])}
+ const es=c.fav[STEM_EL[ds]],eb=c.fav[BR_EL[db]];s+=es*8+eb*7;
+ const e=es+eb;if(e>=1)n.push([`일진 기운(${EL_H[STEM_EL[ds]]}·${EL_H[BR_EL[db]]})이 필요한 오행을 채움`,8]);else if(e<=-1)n.push([`일진 기운이 부담되는 오행(${EL_H[c.gi]})쪽`,-8]);
+ if(GWIIN[c.dStem].includes(db)){s+=6;n.push(['천을귀인 날',6])}
+ return{score:clamp(50+s,0,100),notes:n}}
+function yearBad(yb){return{dj:[11,0,1].includes(yb)?'W':[2,3,4].includes(yb)?'N':[5,6,7].includes(yb)?'E':'S',ss:['S','E','N','W'][yb%4]}}
+function weightsFor(n){return[[1],[.6,.4],[.45,.33,.22],[.4,.27,.2,.13]][n-1]}
+function dirScores(people,wt,yb){const yb2=yearBad(yb);return DIRS.map(d=>{let s=0;people.forEach((c,i)=>{const k=KUA[c.kua];const ix=k.indexOf(d);
+ s+=wt[i]*((ix>=0?[1,.9,.8,.6][ix]:-0.7)*30+c.fav[DIR_EL[d]]*15)});return{d,score:clamp(Math.round(50+s),0,100),dj:yb2.dj===d,ss:yb2.ss===d}})}
+function placeRooms(people,ms){const used={},out=[];
+ people.forEach((c,i)=>{const cat=ROLE_CAT[ms[i].role]||'adult',k=KUA[c.kua],pref=PLACE_PREF[cat];let pick=null,share=null;
+  if(cat==='adult'){const sp=out.find(o=>o.cat==='adult'&&k.includes(o.dir)&&!o.shared);if(sp){pick=sp.dir;share=sp.name;sp.shared=true}}
+  if(!pick){for(const ix of pref){if(!used[k[ix]]){pick=k[ix];break}}if(!pick)pick=k[pref[0]];}
+  used[pick]=true;const ix=k.indexOf(pick),head=cat==='sick'||cat==='elder'?k[1]:k[0];
+  out.push({name:ms[i].name||`가족${i+1}`,cat,dir:pick,kind:KUA_N[ix],mean:KUA_MEAN[ix],head,share,yong:c.yong})});return out}
+function computeMove(){const M=S.move;const ms=M.members;if(!ms.length)return{err:'가족을 한 명 이상 입력해 주세요.'};
+ const people=[];for(let i=0;i<ms.length;i++){const lab=ms[i].name||`가족${i+1}`;if(ms[i].sex!=='M'&&ms[i].sex!=='F')return{err:`${lab}의 성별을 선택해 주세요.`};const r=parseP(ms[i],lab);if(r.err)return r;people.push(r.c)}
+ const due=dParse(M.due);if(due===null)return{err:'이사 예정일을 입력해 주세요.'};const rg=+M.range||14,a=due-rg,b=due+rg;
+ const wt=weightsFor(people.length),dir=M.dir,res=[];
+ for(let j=a;j<=b;j++){const wd=(j+1)%7;if(M.weekend&&wd!==0&&wd!==6)continue;const p=dayPillarOf(j),ld=lunarDay(j),son=sonDir(ld);
+  const fits=people.map(c=>moveFit(c,p.ds,p.db));const fam=fits.reduce((s,f,i)=>s+f.score*wt[i],0);
+  let cal=son===null?100:(dir!=='none'&&son===dir?15:60);const warn=[];
+  if(son&&dir!=='none'&&son===dir)warn.push(`이 날 손(損)이 ${DIR_K[son]}쪽, 이사 방향과 겹침`);
+  if(mod(p.db-p.mBr,12)===6){cal-=25;warn.push(`월파일 (${BR[p.db]}–월지 ${BR[p.mBr]} 충)`)}
+  if(mod(p.db-p.yBr,12)===6){cal-=15;warn.push(`세파일 (${BR[p.db]}–년지 ${BR[p.yBr]} 충)`)}
+  const yb=yearBad(p.yBr);if(dir===yb.dj){cal-=20;warn.push(`그해 대장군방(${DIR_K[yb.dj]}) 이사`)}if(dir===yb.ss){cal-=20;warn.push(`그해 삼살방(${DIR_K[yb.ss]}) 이사`)}
+  fits.forEach((f,i)=>{if(f.notes.some(x=>x[0].includes('일지')&&x[0].endsWith('충')))warn.push(`${ms[i].name||'가족'+(i+1)} 일지와 충`)});
+  cal=clamp(cal,0,100);const total=Math.round(fam*0.6+cal*0.4);res.push({j,p,ld,son,fits,fam:Math.round(fam),cal,total,warn})}
+ if(!res.length)return{err:'조건에 맞는 날짜가 없어요. 기간을 넓혀 보세요.'};
+ res.sort((x,y)=>y.total-x.total||y.fam-x.fam);
+ return{due,rg,people,ms,wt,res,dirs:dirScores(people,wt,dayPillarOf(a).yBr),rooms:placeRooms(people,ms),yb:dayPillarOf(a).yBr}}
+
+/* ===== 출산 ===== */
+const BAEKHO=[[0,4],[1,7],[2,10],[3,1],[4,4],[8,10],[9,1]], GOEGANG=[[6,4],[6,10],[8,4],[8,10],[4,10]];
+function dayScore(c){let s=0;const n=[];const g=tenGod(c.dStem,BR_MAIN[c.dBr]),gi=GRP.findIndex((x,i)=>GOD[i].includes(g));
+ const gv=[8,6,2,-4,12][gi]-(g==='편관'?4:0);s+=gv;n.push([`일지 ${BR[c.dBr]}가 일간의 ${g}`,gv]);
+ brRel(c.dBr,c.mBr).forEach(([k,v])=>{const x=k==='육합'?10:k==='삼합'?6:k==='충'?-15:v*0.75;s+=x;n.push([`일지–월지 ${k}`,x])});
+ brRel(c.dBr,c.hBr).forEach(([k,v])=>{const x=(k==='육합'?10:k==='삼합'?6:k==='충'?-15:v*0.75)*0.8;s+=x;n.push([`일지–시지 ${k}`,x])});
+ brRel(c.dBr,c.yBr).forEach(([k,v])=>{if(k==='충'){s-=6;n.push(['일지–년지 충',-6])}if(k==='육합'){s+=4;n.push(['일지–년지 육합',4])}});
+ [[c.mStem,'월간'],[c.hStem,'시간']].forEach(([x,l])=>{if(stemHe(c.dStem,x)){s+=4;n.push([`일간–${l} 합`,4])}if(stemChong(c.dStem,x)){s-=6;n.push([`일간–${l} 충`,-6])}});
+ const eb=c.fav[BR_EL[c.dBr]];s+=eb*10;if(eb>=0.6)n.push([`일지 오행 ${EL_H[BR_EL[c.dBr]]}이 용신 쪽`,10]);if(eb<=-0.6)n.push([`일지 오행 ${EL_H[BR_EL[c.dBr]]}이 기신 쪽`,-10]);
+ if([c.yBr,c.mBr,c.hBr].some(b=>GWIIN[c.dStem].includes(b))){s+=8;n.push(['원국에 천을귀인',8])}
+ if(BAEKHO.some(([a,b])=>a===c.dStem&&b===c.dBr)){s-=4;n.push(['백호 일주: 기운이 강해 다치지 않게 살피기',-4])}
+ if(GOEGANG.some(([a,b])=>a===c.dStem&&b===c.dBr)){s-=4;n.push(['괴강 일주: 고집과 카리스마가 강함',-4])}
+ return{score:clamp(52+s,0,100),notes:n,god:g}}
+const YANGIN={0:3,2:6,4:6,6:9,8:0};
+function severe(c){const f=[],brs=[c.yBr,c.mBr,c.dBr,c.hBr].filter(b=>b!==null);let ch=0;
+ for(let i=0;i<brs.length;i++)for(let k=i+1;k<brs.length;k++)if(mod(brs[i]-brs[k],12)===6)ch++;
+ if(mod(c.dBr-c.mBr,12)===6)f.push(`일지–월지 충(${BR[c.dBr]}${BR[c.mBr]})`);
+ if(BAEKHO.some(([a,b])=>a===c.dStem&&b===c.dBr))f.push(`백호 일주(${pname(c.dStem,c.dBr)})`);
+ if(c.hStem!==null&&BAEKHO.some(([a,b])=>a===c.hStem&&b===c.hBr))f.push(`백호 시주(${pname(c.hStem,c.hBr)})`);
+ [[2,5,8,'인사신'],[1,10,7,'축술미']].forEach(([a,b,d,n])=>{if(brs.includes(a)&&brs.includes(b)&&brs.includes(d))f.push(`${n} 삼형 완성`)});
+ if(ch>=2)f.push(`원국 충 ${ch}개`);
+ if(YANGIN[c.dStem]===c.dBr&&ch>=1)f.push('양인 일주에 충');
+ if(GOEGANG.some(([a,b])=>a===c.dStem&&b===c.dBr)&&ch>=1)f.push('괴강 일주에 충');
+ return f}
+function balScore(c){const p=c.w.map(x=>x/c.tot),miss=p.filter(x=>x<0.06).length,over=p.filter(x=>x>0.35).reduce((s,x)=>s+(x-0.35),0);
+ const yongP=p[c.yong];return clamp(Math.round(95-miss*14-over*90-Math.abs(c.ratio-0.5)*70+(yongP>=0.12?5:-6)),0,100)}
+function dwScore(c,sex){const f=s=>{const d=daewoon(c,s),wt=[1,1.1,1,.8,.6,.4];let v=0,t=0;d.list.slice(0,6).forEach((x,i)=>{v+=x.v*wt[i];t+=wt[i]});return{d,score:clamp(Math.round(50+40*v/t),0,100)}};
+ if(sex==='U'){const m=f('M'),w=f('F');return{score:Math.round((m.score+w.score)/2),both:[m.d,w.d]}}const r=f(sex);return{score:r.score,one:r.d}}
+function parentFit(ch,pa,label){let s=0;const lines=[];
+ brRel(ch.dBr,pa.dBr).forEach(([k,v])=>{const x={육합:15,삼합:8,충:-18,형:-8,원진:-10,해:-6,복음:0}[k];s+=x;lines.push([`아이 일지 ${BR[ch.dBr]} · ${label} 일지 ${BR[pa.dBr]} ${k}`,x])});
+ if(stemHe(ch.dStem,pa.dStem)){s+=8;lines.push([`일간 ${STEMS[ch.dStem]}·${STEMS[pa.dStem]} 천간합`,8])}
+ if(stemChong(ch.dStem,pa.dStem)){s-=8;lines.push([`일간 ${STEMS[ch.dStem]}·${STEMS[pa.dStem]} 천간충`,-8])}
+ const rel=mod(ch.de-pa.de,5),rv=[4,8,-4,-6,4][rel];s+=rv;
+ const relTxt=[`${label}와 아이 일간이 같은 ${EL_K[ch.de]} 기운이라 친구처럼 통해요. 대신 고집이 부딪히면 둘 다 물러서지 않아요.`,
+  `${label}의 ${EL_K[pa.de]} 기운이 아이의 ${EL_K[ch.de]}을 생해 줘요. 자연스럽게 품어 주는 관계라 아이가 기대기 쉽고, 과잉 보호만 조심하면 돼요.`,
+  `${label}의 ${EL_K[pa.de]} 기운이 아이의 ${EL_K[ch.de]}을 다스리는 관계예요. 훈육은 잘 먹히지만 아이가 압박을 느끼기 쉬우니 칭찬 비율을 높여 주세요.`,
+  `아이의 ${EL_K[ch.de]} 기운이 ${label}의 ${EL_K[pa.de]}을 이기는 관계예요. 아이가 주도하고 ${label}가 맞춰 주게 되니, 규칙은 일관되게 지켜 주세요.`,
+  `아이의 ${EL_K[ch.de]} 기운이 ${label}의 ${EL_K[pa.de]}을 생해 줘요. 아이가 ${label}를 기쁘게 하고 챙기는 편이라, 아이에게 어른 역할을 기대하지 않도록 해요.`][rel];
+ const dom=argmax(pa.w),dv=ch.fav[dom];if(dv>=0.6){s+=8;lines.push([`${label}의 강한 ${EL_H[dom]} 기운이 아이에게 필요한 오행을 채워 줌`,8])}else if(dv<=-0.6){s-=6;lines.push([`${label}의 강한 ${EL_H[dom]} 기운이 아이에게는 과한 쪽`,-6])}
+ brRel(ch.yBr,pa.yBr).forEach(([k])=>{if(k==='충'){s-=5;lines.push([`띠끼리 충 (${BR[ch.yBr]}–${BR[pa.yBr]})`,-5])}if(k==='육합'){s+=3;lines.push([`띠끼리 육합 (${BR[ch.yBr]}–${BR[pa.yBr]})`,3])}});
+ const hasHe=lines.some(l=>l[1]>0&&/합/.test(l[0])),hasCh=lines.some(l=>/충|원진/.test(l[0]));
+ const tip=hasCh?'생활 리듬과 감정 표현 방식이 달라 부딪힐 수 있어요. 감정이 올라올 때는 시간을 두고 다시 이야기하는 습관이 도움이 돼요.':hasHe?'정서적으로 잘 붙는 조합이에요. 말하지 않아도 분위기를 읽는 편이라 대화가 편해요.':'무난한 조합이에요. 아이의 표현 방식을 먼저 물어보고 맞춰 주면 소통이 깊어져요.';
+ return{score:clamp(50+s,0,100),lines,relTxt,tip}}
+function slotsFor(hs,he){const c=S.correct?(9-127/15):0,out=[];
+ for(let b=-1;b<=23;b+=2){const st=b+c,en=b+2+c,lo=Math.max(st,hs),hi=Math.min(en,he);if(hi-lo>=0.25)out.push({mid:(lo+hi)/2,st,en,br:mod((b+1)/2,12)})}return out}
+const hm=h=>{h=mod(h,24);const H=Math.floor(h),M=Math.round((h-H)*60);return M===60?`${String(H+1).padStart(2,'0')}:00`:`${String(H).padStart(2,'0')}:${String(M).padStart(2,'0')}`};
+function computeBirth(){const B=S.birth;const mo=parseP({...B.mom,sex:'F'},'엄마');if(mo.err)return mo;const fa=parseP({...B.dad,sex:'M'},'아빠');if(fa.err)return fa;
+ const due=dParse(B.due);if(due===null)return{err:'출산 예정일을 입력해 주세요.'};const rg=+B.range||14,a=due-rg,b=due;
+ const tp=s=>{const m=/^(\d{2}):(\d{2})/.exec(s||'');return m?+m[1]+m[2]/60:null};const hs=tp(B.hs),he=tp(B.he);if(hs===null||he===null||he<=hs)return{err:'가능 시간을 시작보다 끝이 늦게 입력해 주세요.'};
+ const slots=slotsFor(hs,he);if(!slots.length)return{err:'가능 시간 범위가 너무 좁아요.'};
+ const best=new Map(),bad=new Map();
+ for(let j=a;j<=b;j++){const dt=fromJdn(j);for(const sl of slots){const H=Math.floor(sl.mid),Mi=Math.round((sl.mid-H)*60)%60;
+  const c=makeChart(dt.y,dt.m,dt.d,H,Mi,true,B.sex==='U'?'M':B.sex);const ds=dayScore(c),bs=balScore(c),dw=dwScore(c,B.sex);
+  const pm=parentFit(c,mo.c,'엄마'),pf=parentFit(c,fa.c,'아빠'),par=(pm.score+pf.score)/2;
+  const total=Math.round(bs*.35+dw.score*.25+ds.score*.25+par*.15),sv=severe(c);
+  const r={j,sl,c,ds,bs,dw,pm,pf,par:Math.round(par),total,sv};
+  if(sv.length){const x=bad.get(j);if(!x||r.total>x.total)bad.set(j,r);continue}
+  const cur=best.get(j);if(!cur||r.total>cur.total)best.set(j,r)}}
+ const res=[...best.values()].sort((x,y)=>y.total-x.total||y.bs-x.bs);
+ const excluded=[...bad.values()].filter(r=>!best.has(r.j)).sort((x,y)=>x.j-y.j);return{due,rg,res,excluded,nSlots:slots.length,mom:mo.c,dad:fa.c}}
+
+/* ===== 렌더 ===== */
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const SEALS=['壹','貳','參'];
+function bar(l,v){return `<div class="bar"><span>${l}</span><div class="t"><i style="width:${v}%"></i></div><b>${v}</b></div>`}
+function pillarsHTML(c){const col=(lab,s,b,isDay)=>`<div class="pc"><div class="lab">${lab}</div>`+
+ (s===null?`<div class="cell"><div class="hz" style="color:var(--line)">?</div><div class="kr">모름</div></div><div class="cell"><div class="hz" style="color:var(--line)">?</div><div class="kr">&nbsp;</div></div>`:
+ `<div class="cell"><div class="hz e${STEM_EL[s]}">${STEMS[s]}</div><div class="kr">${STEMS_K[s]} · ${isDay?'일간':tenGod(c.dStem,s)}</div></div><div class="cell"><div class="hz e${BR_EL[b]}">${BR[b]}</div><div class="kr">${BR_K[b]} · ${tenGod(c.dStem,BR_MAIN[b])}</div></div>`)+`</div>`;
+ return `<div class="pillars">${col('시',c.hStem,c.hBr)}${col('일',c.dStem,c.dBr,true)}${col('월',c.mStem,c.mBr)}${col('년',c.yStem,c.yBr)}</div>`}
+function elHTML(c){return `<div class="elbar">${c.w.map((x,i)=>`<i class="b${i}" style="width:${x/c.tot*100}%"></i>`).join('')}</div><div class="ellegend">${c.w.map((x,i)=>`<span><b class="e${i}">${EL_H[i]}</b> ${Math.round(x/c.tot*100)}%</span>`).join('')}</div>`}
+const chipCls=v=>v>0?'g':v<=-10?'b':v<0?'w':'';
+function personSummary(c){return `${STEMS[c.dStem]}${EL_K[c.de]} 일간 · ${c.strong?'신강':'신약'} · 용신 ${EL_H[c.yong]}(${EL_K[c.yong]})`+(c.kua?` · 본명괘 ${c.kua} (${[1,3,4,9].includes(c.kua)?'동사택':'서사택'})`:'')}
+
+function renderMove(R){let h='';
+ const dirSel=S.move.dir,best=[...R.dirs].filter(d=>!d.dj&&!d.ss).sort((a,b)=>b.score-a.score)[0];
+ h+=`<div class="sec"><h2>가족 기운 요약</h2><div class="sub2">${R.people.map((c,i)=>`<div class="box mini"><div class="mhead"><span class="rank">${i+1}순위 · ${Math.round(R.wt[i]*100)}%</span><b>${esc(R.ms[i].name||'가족'+(i+1))}</b><span class="note">${esc(R.ms[i].role)}</span></div>${pillarsHTML(c)}<div class="note">${personSummary(c)}</div></div>`).join('')}</div></div>`;
+ const yb=yearBad(R.yb);
+ h+=`<div class="sec"><h2>방향 적합도</h2><p class="note" style="margin:0">가족 본명괘(팔택)의 길방과 용신 오행을 순위 가중치로 합산했어요. ${BR[R.yb]}년 기준 대장군방은 ${DIR_K[yb.dj]}, 삼살방은 ${DIR_K[yb.ss]}입니다.</p>
+ <div class="box tbl"><table><thead><tr><th>방향</th><th>점수</th><th>가족별 팔택</th><th>비고</th></tr></thead><tbody>${R.dirs.map(d=>`<tr class="${d.d===best.d?'best':''}"><td><b>${DIR_K[d.d]}</b>${d.d===dirSel?' (선택)':''}</td><td class="n">${d.score}</td><td>${R.people.map((c,i)=>{const ix=KUA[c.kua].indexOf(d.d);return `${esc(R.ms[i].name||'가족'+(i+1))} ${ix>=0?KUA_N[ix]:'흉방'}`}).join(', ')}</td><td>${[d.d===best.d?'추천':'',d.dj?'대장군':'',d.ss?'삼살':''].filter(Boolean).join(' · ')}</td></tr>`).join('')}</tbody></table></div></div>`;
+ h+=`<div class="sec"><h2>새 집 방 배치</h2><p class="note" style="margin:0">배려 순서대로 각자의 길방을 먼저 배정했어요. 방위는 집 중심에서 본 방향입니다.</p><div class="sub2">${R.rooms.map(r=>`<div class="box"><b>${esc(r.name)}</b><dl class="kv" style="margin:8px 0 0"><dt>방 위치</dt><dd>${DIR_K[r.dir]}쪽 방 · ${r.kind} (${r.mean})${r.share?` · ${esc(r.share)}와 같은 방`:''}</dd><dt>침대 머리</dt><dd>${DIR_K[r.head]}쪽</dd><dt>도움 색·소품</dt><dd>${EL_COLOR[r.yong]}</dd></dl></div>`).join('')}</div></div>`;
+ h+=`<div class="sec"><h2>추천 이사일</h2><p class="note" style="margin:0">예정일 ${dStr(R.due)} 기준 ±${R.rg}일 안에서 골랐어요.</p>`;
+ const mCard=(r,i)=>{const head=`<div class="ctop"><div class="seal${i>2?' sm':''}">${i<3?SEALS[i]:i+1}</div><div class="ctitle"><div class="d">${r.p.dt.m}월 ${r.p.dt.d}일 (${wday(r.j)})</div><div class="sub"><b>${relDue(r.j,R.due)}</b> · ${pkr(r.p.ds,r.p.db)}(${pname(r.p.ds,r.p.db)})일 · 음력 ${r.ld}일 · ${r.son===null?'손없는날':`손 ${DIR_K[r.son]}쪽`}</div>${i>2?'<div class="more">설명 보기</div>':''}</div><div class="score">${r.total}<small>/ 100</small></div></div>`;
+  const body=`<div class="bars">${bar('가족 조화',r.fam)}${bar('책력·방위',r.cal)}</div>
+  ${r.warn.length?`<div class="chips">${r.warn.map(w=>`<span class="chip w">${esc(w)}</span>`).join('')}</div>`:`<div class="chips"><span class="chip g">큰 흉살 없음</span>${r.son===null?'<span class="chip g">손없는날</span>':''}</div>`}
+  <div class="mlist">${r.fits.map((f,k)=>`<div class="mfit"><div class="h">${esc(R.ms[k].name||'가족'+(k+1))} <span>${Math.round(f.score)}</span></div>${f.notes.length?`<ul>${f.notes.map(n=>`<li>${esc(n[0])} ${n[1]>0?'(+)':'(−)'}</li>`).join('')}</ul>`:'<ul><li>특별한 합·충 없이 무난함</li></ul>'}</div>`).join('')}</div>`;
+  return wrapCard(i,head,body)};
+ h+=R.res.slice(0,3).map(mCard).join('')+`</div>`;
+ const rest=R.res.slice(3,10);if(rest.length)h+=`<div class="sec"><h3>다음 후보 · 눌러서 설명 보기</h3>${rest.map((r,k)=>mCard(r,k+3)).join('')}</div>`;
+ const worst=[...R.res].sort((a,b)=>a.total-b.total).slice(0,3);
+ h+=`<div class="sec"><h3>피하면 좋은 날</h3><div class="chips">${worst.map(r=>`<span class="chip b">${r.p.dt.m}/${r.p.dt.d} ${pname(r.p.ds,r.p.db)} · ${esc(r.warn[0]||'가족과 충')}</span>`).join('')}</div></div>`;
+ return h}
+
+function wrapCard(i,head,body){return i<3?`<article class="card">${head}${body}</article>`:`<details class="cand"><summary>${head}</summary><div class="cbody">${body}</div></details>`}
+function dwHTML(d,title){return `<div><div class="note">${title}${d.fwd?'순행':'역행'} · ${d.start}세 시작</div><div class="chips" style="margin-top:4px">${d.list.map(x=>`<span class="chip ${x.v>0.25?'g':x.v<-0.25?'b':''}">${x.age}세 ${pname(x.s,x.b)}</span>`).join('')}</div></div>`}
+function dwSummary(d){const f=d.list.slice(0,4);const good=f.filter(x=>x.v>0.25).map(x=>x.age),bad=f.filter(x=>x.v<-0.25).map(x=>x.age);
+ return `${good.length?`${good.join('·')}세 대운이 용신 흐름이라 그 시기에 실력이 크게 붙어요. `:''}${bad.length?`${bad.join('·')}세 대운은 기신 쪽이라 생활 리듬과 건강을 더 챙겨 주세요.`:''}`||'초년 대운이 무난하게 흘러요.'}
+function renderBirth(R){const exHTML=R.excluded.length?`<div class="sec"><h3>흉살로 제외된 날</h3><p class="note" style="margin:0">가능한 모든 시간대에 중대 흉살이 걸려 추천에서 뺐어요.</p><div class="chips">${R.excluded.map(r=>{const d=fromJdn(r.j);return `<span class="chip b">${d.m}/${d.d} (${wday(r.j)}) · ${esc(r.sv.join(', '))}</span>`}).join('')}</div></div>`:'';
+ if(!R.res.length)return `<div class="box"><b>범위 안의 모든 날짜가 중대 흉살로 제외됐어요.</b><p class="note" style="margin:4px 0 0">추천 범위를 넓히거나 가능 시간을 늘려 보세요.</p></div>${exHTML}`;let h=`<div class="sec"><h2>부모 사주</h2><div class="sub2"><div class="box mini"><b>엄마</b>${pillarsHTML(R.mom)}<div class="note">${personSummary(R.mom)}</div></div><div class="box mini"><b>아빠</b>${pillarsHTML(R.dad)}<div class="note">${personSummary(R.dad)}</div></div></div></div><div class="sec"><h2>추천 출산일</h2><p class="note" style="margin:0">예정일 ${dStr(R.due)}까지, 그 전 ${R.rg/7}주 안에서 골랐어요. 오행 조화 35% · 대운 25% · 일주 25% · 부모 궁합 15%. 백호(일·시주), 일월충, 삼형 완성, 충 2개 이상, 양인·괴강 일주에 충이 있는 시간대는 점수와 관계없이 뺐어요.</p>`;
+ const bCard=(r,i)=>{const c=r.c,dt=fromJdn(r.j);const gs=[...c.groups.keys()].sort((a,b)=>c.groups[b]-c.groups[a]).slice(0,2);
+  const head=`<div class="ctop"><div class="seal${i>2?' sm':''}">${i<3?SEALS[i]:i+1}</div><div class="ctitle"><div class="d">${dt.m}월 ${dt.d}일 (${wday(r.j)}) ${BR[c.hBr]}시</div><div class="sub"><b>${relDue(r.j,R.due)}</b> · ${hm(Math.max(r.sl.st,0))}–${hm(r.sl.en)} 사이 · ${pkr(c.dStem,c.dBr)}(${pname(c.dStem,c.dBr)}) 일주</div>${i>2?`<div class="more">오행 ${r.bs} · 대운 ${r.dw.score} · 일주 ${Math.round(r.ds.score)} · 부모 ${r.par} · 설명 보기</div>`:''}</div><div class="score">${r.total}<small>/ 100</small></div></div>`;
+  const body=`<div class="bars">${bar('오행 조화',r.bs)}${bar('대운',r.dw.score)}${bar('일주(일운)',Math.round(r.ds.score))}${bar('부모 궁합',r.par)}</div>
+  ${pillarsHTML(c)}${elHTML(c)}
+  <div class="chips">${r.ds.notes.map(n=>`<span class="chip ${chipCls(n[1])}">${esc(n[0])}</span>`).join('')}</div>
+  <div class="para"><h3>성격</h3><p>${DM_TXT[c.dStem]} ${GOD_TXT[r.ds.god]}</p><p class="note">${c.strong?'신강':'신약'} 사주로 용신은 ${EL_H[c.yong]}(${EL_K[c.yong]}). 도움 색·환경은 ${EL_COLOR[c.yong]}.</p></div>
+  <div class="para"><h3>진로</h3><p>${GRP[gs[0]]} 기운이 가장 두드러져 ${CAREER[gs[0]]}에 잘 맞아요. 다음으로 ${GRP[gs[1]]} 기운이 받쳐 줘서 ${CAREER[gs[1]].split('처럼')[0]} 쪽 재능도 함께 살릴 수 있어요.</p></div>
+  <div class="para"><h3>대운</h3>${r.dw.one?dwHTML(r.dw.one,''):dwHTML(r.dw.both[0],'남아 ')+dwHTML(r.dw.both[1],'여아 ')}<p style="margin-top:6px">${dwSummary(r.dw.one||r.dw.both[0])}</p></div>
+  <div class="sub2">${[['엄마',r.pm],['아빠',r.pf]].map(([l,p])=>`<div class="mfit"><div class="h">${l}와의 합 <span>${Math.round(p.score)}</span></div><ul>${p.lines.map(x=>`<li>${esc(x[0])} ${x[1]>0?'(+)':x[1]<0?'(−)':''}</li>`).join('')}</ul><p class="para" style="margin:4px 0 0">${p.relTxt}</p><p class="note" style="margin:2px 0 0">소통: ${p.tip}</p></div>`).join('')}</div>`;
+  return wrapCard(i,head,body)};
+ h+=R.res.slice(0,3).map(bCard).join('')+`</div>`;const rest=R.res.slice(3,10);if(rest.length)h+=`<div class="sec"><h3>다음 후보 · 눌러서 설명 보기</h3>${rest.map((r,k)=>bCard(r,k+3)).join('')}</div>`;
+ h+=exHTML;
+ return h}
+
+/* ===== 상태·폼 ===== */
+function defaults(){const t=new Date(),e=new Date(t.getTime()+30*864e5);return{tab:'move',correct:true,
+ move:{dir:'S',due:iso(e),range:'14',weekend:false,members:[
+  {name:'서윤 (예시)',role:'아이',sex:'F',date:'2019-08-21',time:'14:00',noTime:false},
+  {name:'할머니 (예시)',role:'환자(아픈 가족)',sex:'F',date:'1958-02-10',time:'',noTime:true},
+  {name:'엄마 (예시)',role:'본인',sex:'F',date:'1988-05-14',time:'07:30',noTime:false},
+  {name:'아빠 (예시)',role:'배우자',sex:'M',date:'1986-11-02',time:'22:10',noTime:false}]},
+ birth:{mom:{date:'1991-04-12',time:'08:20',noTime:false},dad:{date:'1989-09-03',time:'',noTime:true},sex:'U',due:'2027-03-22',range:'14',hs:'09:00',he:'17:00'}}}
+try{S=JSON.parse(localStorage.getItem('gaon-taegil-v1'))}catch(e){}
+if(!S||!S.move||!S.birth)S=defaults();
+{const D=defaults();if(!S.move.due){S.move.due=D.move.due;S.move.range='14'}if(!S.birth.due){S.birth.due=D.birth.due;S.birth.range='14'}}
+const save=()=>{try{localStorage.setItem('gaon-taegil-v1',JSON.stringify(S))}catch(e){}};
+function personFields(p,pre,withMeta){return `${withMeta?`<div class="grid"><label class="f">이름<input id="${pre}-name" data-k="name" value="${esc(p.name||'')}"></label><label class="f">역할<select id="${pre}-role" data-k="role">${ROLES.map(r=>`<option${r===p.role?' selected':''}>${r}</option>`).join('')}</select></label><label class="f">성별<select id="${pre}-sex" data-k="sex"><option value="F"${p.sex==='F'?' selected':''}>여</option><option value="M"${p.sex==='M'?' selected':''}>남</option></select></label></div>`:''}
+ <div class="grid"><label class="f">생년월일 (양력)<input type="date" id="${pre}-date" data-k="date" value="${esc(p.date||'')}"></label><label class="f">태어난 시각<input type="time" id="${pre}-time" data-k="time" value="${esc(p.time||'')}"${p.noTime?' disabled':''}></label></div>
+ <label class="chk"><input type="checkbox" id="${pre}-nt" data-k="noTime"${p.noTime?' checked':''}> 시간 모름</label>`}
+function renderMembers(){const ms=S.move.members;$('#members').innerHTML=ms.map((p,i)=>`<div class="box member" data-i="${i}"><div class="mhead"><span class="rank">${i+1}순위</span><span class="sp"></span>
+ <button class="icon" type="button" data-act="up" aria-label="위로"${i===0?' disabled':''}>↑</button><button class="icon" type="button" data-act="down" aria-label="아래로"${i===ms.length-1?' disabled':''}>↓</button><button class="icon" type="button" data-act="del" aria-label="삭제">✕</button></div>${personFields(p,'m'+i,true)}</div>`).join('');
+ $('#addMember').hidden=ms.length>=4}
+function renderParents(){$('#parents').innerHTML=['mom','dad'].map(k=>`<div class="box member" data-p="${k}"><div class="mhead"><b>${k==='mom'?'엄마':'아빠'}</b></div>${personFields(S.birth[k],k,false)}</div>`).join('')}
+const $=s=>document.querySelector(s);
+function onField(e){const el=e.target,k=el.dataset.k;if(!k)return;const box=el.closest('[data-i],[data-p]');if(!box)return;
+ const obj=box.dataset.i!==undefined?S.move.members[+box.dataset.i]:S.birth[box.dataset.p];
+ obj[k]=el.type==='checkbox'?el.checked:el.value;if(k==='noTime'){const t=box.querySelector('input[type=time]');t.disabled=el.checked}save()}
+['#members','#parents'].forEach(s=>{$(s).addEventListener('input',onField);$(s).addEventListener('change',onField)});
+$('#members').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const i=+b.closest('[data-i]').dataset.i,ms=S.move.members;
+ if(b.dataset.act==='up'&&i>0)[ms[i-1],ms[i]]=[ms[i],ms[i-1]];if(b.dataset.act==='down'&&i<ms.length-1)[ms[i+1],ms[i]]=[ms[i],ms[i+1]];if(b.dataset.act==='del')ms.splice(i,1);save();renderMembers()});
+$('#addMember').onclick=()=>{if(S.move.members.length<4){S.move.members.push({name:'',role:'기타',sex:'F',date:'',time:'',noTime:false});save();renderMembers()}};
+const bind=(id,obj,key,chk)=>{const el=$(id);if(chk)el.checked=!!obj()[key];else el.value=obj()[key]||'';el.addEventListener(chk?'change':'input',()=>{obj()[key]=chk?el.checked:el.value;save()});if(!chk)el.addEventListener('change',()=>{obj()[key]=el.value;save()})};
+bind('#mv-dir',()=>S.move,'dir');bind('#mv-due',()=>S.move,'due');bind('#mv-range',()=>S.move,'range');bind('#mv-weekend',()=>S.move,'weekend',true);
+bind('#bt-sex',()=>S.birth,'sex');bind('#bt-due',()=>S.birth,'due');bind('#bt-range',()=>S.birth,'range');bind('#bt-hs',()=>S.birth,'hs');bind('#bt-he',()=>S.birth,'he');
+bind('#opt-correct',()=>S,'correct',true);
+function setTab(t){S.tab=t;save();$('#tab-move').setAttribute('aria-selected',t==='move');$('#tab-birth').setAttribute('aria-selected',t==='birth');$('#p-move').hidden=t!=='move';$('#p-birth').hidden=t!=='birth';run()}
+$('#tab-move').onclick=()=>setTab('move');$('#tab-birth').onclick=()=>setTab('birth');
+function run(){const err=$('#err'),out=$('#out');err.hidden=true;let R;
+ try{R=S.tab==='move'?computeMove():computeBirth()}catch(e){R={err:'계산 중 문제가 생겼어요. 입력값을 확인해 주세요.'};console.error(e)}
+ if(R.err){err.textContent=R.err;err.hidden=false;out.innerHTML='';return}
+ out.innerHTML=S.tab==='move'?renderMove(R):renderBirth(R)}
+$('#run').onclick=()=>{run();$('#out').scrollIntoView({behavior:'smooth',block:'start'})};
+renderMembers();renderParents();setTab(S.tab||'move');
+
+if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))}
+</script>
+</body>
+</html>
