@@ -6,6 +6,9 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="가온">
+<script src="/lib/gaon-time.js"></script>
+<style>.gaon-time-help{display:block;font-size:11.5px;line-height:1.45;opacity:.75;font-weight:400;margin-top:2px}</style>
+
 <style>
 .gaon-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1040px;margin:0 auto;
   padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));
@@ -223,10 +226,9 @@ footer p{margin:0 0 6px}
       <div class="field c3"><label for="bt">태어난 시각</label><input type="time" id="bt"></div>
       <div class="field c3"><label for="bp">태어난 곳 (시·군·구)</label><input type="text" id="bp" list="regions" placeholder="예: 서울 종로구"></div>
       <div class="field c6"><label for="home">지금 사는 곳 (동·읍·면까지)</label><input type="text" id="home" list="regions" placeholder="예: 마포구 합정동, 분당 정자동, 해운대 우동"></div>
+      <div class="field c6"><label for="tmode">시각 보정</label><select id="tmode"></select><small class="gaon-time-help"></small></div>
       <div class="checks c6">
         <label><input type="checkbox" id="unk"> 시간 모름</label>
-        <label><input type="checkbox" id="corr" checked> 진태양시 (출생지 경도)</label>
-        <label><input type="checkbox" id="eot"> 균시차 반영</label>
         <label><input type="checkbox" id="dst" checked> 서머타임 자동 보정</label>
         <label><input type="checkbox" id="yaja"> 야자시 (23시대는 당일)</label>
       </div>
@@ -332,8 +334,7 @@ function calc(o){
   const dst=(o.dstOn&&DST.some(([a,b])=>iso>=a&&iso<b))?60:0;
   const ut=wall-(std+dst)*MIN;
   // 진태양시(또는 표준시) 벽시계
-  let solarWall = o.corr ? ut+o.bp.lon*4*MIN : ut+std*MIN;
-  if(o.corr&&o.eot) solarWall+=eotMin(ut)*MIN;
+  let solarWall = ut + GaonTime.offsetMs(o.tmode, ut, o.bp.lon, std);
   // 연·월: 실제 절입 시각과 비교
   const k=jieIndex(ut), lonNow=JIE.lon[k];
   const mIdx=mod(lonNow-315,360)/30;
@@ -473,7 +474,7 @@ const elc=e=>`var(${EL_VAR[e]})`;
 
 function readForm(){
   const o={y:+$("#by").value,m:+$("#bm").value,d:+$("#bdd").value,time:$("#bt").value,
-    unknown:$("#unk").checked||!$("#bt").value,corr:$("#corr").checked,eot:$("#eot").checked,dstOn:$("#dst").checked,yaja:$("#yaja").checked};
+    unknown:$("#unk").checked||!$("#bt").value,tmode:$("#tmode").value,dstOn:$("#dst").checked,yaja:$("#yaja").checked};
   if(!o.y||o.y<1900||o.y>2100) return {err:"년도는 1900–2100 사이로 넣어 주세요."};
   let lunar=null;
   if(S.cal==="L"){const r=lunarToSolar(o.y,o.m,$("#leap").checked,o.d); if(r.err) return {err:r.err};
@@ -540,7 +541,7 @@ function render(){
   const sw=new Date(p.solarWall);
   const L=o.lunar; const jk=p.jieK;
   const meta=`<div class="meta"><span>양력 <b>${o.y}.${pad(o.m)}.${pad(o.d)}</b></span>${L?`<span>음력 <b>${L.y}.${L.leap?"윤":""}${pad(L.num)}.${pad(L.d)}</b></span>`:""}
-    ${o.unknown?"":`<span>${o.corr?"진태양시":"표준시"} <b>${pad(sw.getUTCHours())}:${pad(sw.getUTCMinutes())}</b>${p.dst?" (서머타임 −1시간)":""}</span>`}
+    ${o.unknown?"":`<span>${GaonTime.SHORT[o.tmode]||"지방평균시"} <b>${pad(sw.getUTCHours())}:${pad(sw.getUTCMinutes())}</b>${p.dst?" (서머타임 −1시간)":""}</span>`}
     <span>출생지 <b>${o.bp.label}</b></span>
     <span>절입 <b>${JIE_NAME[JIE.lon[jk]]} ${fmtKST(JIE.t[jk])}</b> 이후 · 다음 ${JIE_NAME[JIE.lon[jk+1]]} ${fmtKST(JIE.t[jk+1])}</span></div>`;
   const stateTxt={신약:"일간을 돕는 기운이 적습니다. 채워 주는 쪽으로 처방합니다.",신강:"일간의 힘이 넘칩니다. 덜어내고 흘려보내는 쪽으로 처방합니다.",중화:"강약이 비슷합니다. 가장 모자란 기운을 보충합니다."}[a.state];
@@ -702,6 +703,7 @@ document.querySelectorAll("[data-cal]").forEach(b=>b.addEventListener("click",()
 document.querySelectorAll("[data-g]").forEach(b=>b.addEventListener("click",()=>{S.gender=b.dataset.g;
   document.querySelectorAll("[data-g]").forEach(x=>x.setAttribute("aria-pressed",x===b))}));
 $("#unk").addEventListener("change",e=>{$("#bt").disabled=e.target.checked});
+GaonTime.bind($("#tmode"),()=>{if($("#out")&&$("#out").innerHTML.trim())run()});
 $("#f").addEventListener("submit",e=>{e.preventDefault();S.sample=false;if(run())$("#out").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
 
 // 저장된 입력 또는 예시

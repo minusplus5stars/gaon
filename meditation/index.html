@@ -8,6 +8,9 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="가온">
+<script src="/lib/gaon-time.js"></script>
+<style>.gaon-time-help{display:block;font-size:11.5px;line-height:1.45;opacity:.75;font-weight:400;margin-top:2px}</style>
+
 <style>
 .gaon-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1040px;margin:0 auto;
   padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));
@@ -139,11 +142,7 @@ details ul{margin:8px 0 0;padding-left:18px;font-size:14px;color:var(--muted);di
             <option value="126.53">제주</option>
           </select></label>
         <label for="tmode">시각 보정
-          <select id="tmode">
-            <option value="true">진태양시 (경도+균시차)</option>
-            <option value="mean">평균태양시 (경도만)</option>
-            <option value="none">보정 안 함 (UTC+9)</option>
-          </select></label>
+          <select id="tmode"></select><small class="gaon-time-help"></small></label>
         <label for="jasi">자시(23~1시) 기준
           <select id="jasi">
             <option value="23">23시에 날 바뀜</option>
@@ -293,7 +292,7 @@ function findJeol(lonTarget, approxDate){
 
 // opts: {hourKnown, lon(경도), timeMode:'true'|'mean'|'none', jasi:'23'|'00'}
 function calcSaju(y,m,d,h,mi,opts){
-  const o = Object.assign({hourKnown:true, lon:126.98, timeMode:'true', jasi:'23'}, opts||{});
+  const o = Object.assign({hourKnown:true, lon:126.98, timeMode:'mean', jasi:'23'}, opts||{});
   const hh = o.hourKnown ? h : 12, mm = o.hourKnown ? mi : 0;
   const utc = seoulLocalToUtc(y,m,d,hh,mm);
   const birth = new Date(utc);
@@ -319,19 +318,11 @@ function calcSaju(y,m,d,h,mi,opts){
 
   // --- 일·시주용 시각 ---
   let localMs, eotMin = null;
-  if (!o.hourKnown || o.timeMode==='none') localMs = utc + 9*3600e3;
+  if (!o.hourKnown) localMs = utc + 9*3600e3;
   else {
-    const meanMs = utc + o.lon/15*3600e3;
-    if (o.timeMode==='mean') localMs = meanMs;
-    else {
-      const obs = new A.Observer(37.5, o.lon, 0);
-      const ha = A.HourAngle(A.Body.Sun, birth, obs);        // 0~24h
-      const trueH = (ha+12)%24;
-      const meanH = (((meanMs/3600e3)%24)+24)%24;
-      let eot = trueH - meanH; if (eot>12) eot-=24; if (eot<-12) eot+=24;
-      eotMin = eot*60;
-      localMs = meanMs + eot*3600e3;
-    }
+    const stdOff = civilOffsetMin>=600 ? 540 : (civilOffsetMin===570 ? 510 : civilOffsetMin); // 서머타임 뺀 당시 표준시
+    if (o.timeMode==='true') eotMin = GaonTime.eotMin(utc);
+    localMs = utc + GaonTime.offsetMs(o.timeMode, utc, o.lon, stdOff);
   }
   const lt = new Date(localMs);
   const lh = lt.getUTCHours(), lmin = lt.getUTCMinutes();
@@ -496,7 +487,7 @@ function render(r, label, input){
     let t=`${input.time} 입력`;
     if(dst!==0) t+=` → 당시 표준시 차이 ${signed(-dst)}`;
     if(r.mode==='true') t+=` → 진태양시 ${hm(r.solarLocal.h,r.solarLocal.m)} (경도 ${signed((r.lon-135)*4)}, 균시차 ${signed(r.eotMin)})`;
-    else if(r.mode==='mean') t+=` → 평균태양시 ${hm(r.solarLocal.h,r.solarLocal.m)} (경도 ${signed((r.lon-135)*4)})`;
+    else if(r.mode==='mean') t+=` → 지방평균시 ${hm(r.solarLocal.h,r.solarLocal.m)} (경도 ${signed((r.lon-135)*4)})`;
     else t+=` → 보정 없이 ${hm(r.solarLocal.h,r.solarLocal.m)}`;
     rows.push(['시각',t]);
   } else rows.push(['시각','모름 (시주 없이 여섯 글자로 계산)']);
@@ -584,6 +575,7 @@ $('stop').addEventListener('click',()=>{stopBreath();const rx=RX[currentMain()];
 
 // 입력
 $('unknown').addEventListener('change',e=>{$('btime').disabled=e.target.checked;});
+GaonTime.bind($('tmode'));
 function run(){
   const dv=$('bdate').value;
   if(!dv){$('err').textContent='생년월일을 입력해 주세요.';return false;}

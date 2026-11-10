@@ -6,6 +6,9 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="가온">
+<script src="/lib/gaon-time.js"></script>
+<style>.gaon-time-help{display:block;font-size:11.5px;line-height:1.45;opacity:.75;font-weight:400;margin-top:2px}</style>
+
 <style>
 .gaon-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1040px;margin:0 auto;
   padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));
@@ -273,7 +276,7 @@ details.cur summary b::after { content: "현재"; margin-left: 8px; font-size: 1
       <label>출생지<select id="city"></select></label>
       <label class="coords" id="latL" hidden>위도<input id="lat" type="number" step="0.0001" value="37.5665"></label>
       <label class="coords" id="lonL" hidden>경도<input id="lon" type="number" step="0.0001" value="126.978"></label>
-      <label>사주·자미 시각 기준<select id="tcorr"><option value="lmt">출생지 경도 보정 (지방평균시)</option><option value="std">표준시 그대로</option></select></label>
+      <label style="grid-column:1/-1">사주·자미 시각 보정<select id="tcorr"></select><small class="gaon-time-help"></small></label>
       <label>대운 시점<select id="daeMode"><option value="exact">정밀 (절입 일수÷3, 날짜까지)</option><option value="korean">대운수 + 세는 나이</option><option value="intl">대운수 + 만 나이</option></select></label>
       <label>자시 처리<select id="zi"><option value="day23">23시에 날짜 바뀜</option><option value="split">야자시 (자정에 날짜 바뀜)</option></select></label>
       <button type="submit">차트 계산</button>
@@ -854,7 +857,7 @@ function render() {
 
   // 사주·자미 기준 현지 시각
   const stdOff = offset >= 600 ? 540 : (offset === 570 ? 510 : offset);
-  const localMs = date.getTime() + (tcorr === 'lmt' ? lon * 4 * 60000 : stdOff * 60000);
+  const localMs = date.getTime() + GaonTime.offsetMs(tcorr, date.getTime(), lon, stdOff);
   const sj = E.saju(date.getTime(), localMs, gender, { ziMode });
   applyDaeMode(sj, y, mo, d, $('daeMode').value);
   const lt = new Date(localMs);
@@ -975,7 +978,7 @@ function renderSaju(sj) {
 
 function sajuText(sj) {
   const P = sj.pillars, I = sj.info, now = new Date(), cur = curDaeun(sj, now), se = seun(now);
-  const L = ['[사주 원국] (절기·입춘 기준, ' + ($('tcorr').value === 'lmt' ? '경도 보정 지방평균시' : '표준시') + ', 자시: ' + ($('zi').value === 'split' ? '야자시' : '23시 날짜 변경') + ')'];
+  const L = ['[사주 원국] (절기·입춘 기준, ' + ({mean:'경도 보정 지방평균시',true:'경도+균시차 진태양시',none:'표준시'}[$('tcorr').value]) + ', 자시: ' + ($('zi').value === 'split' ? '야자시' : '23시 날짜 변경') + ')'];
   for (const k of ['year', 'month', 'day', 'hour'])
     L.push(`- ${PILLAR_KO[k]}: ${gzHan(P[k])}(${gzKo(P[k])}) 천간 ${I[k].stemGod} / 지지 ${I[k].branchGod}, 지장간 ${I[k].hidden.map(s => E.GAN[s]).join('')}, 12운성 ${I[k].stage}`);
   L.push(`일간: ${E.GAN[P.day.s]}${E.EL_HAN[E.GAN_EL[P.day.s]]}. 오행 개수(천간+지지 본기): ` + sj.count.map((n, e) => `${E.EL[e]} ${n}`).join(', ') + `. 공망 ${sj.kong.map(b => E.ZHI[b]).join('')}`);
@@ -1261,6 +1264,7 @@ $('mSimple').setAttribute('aria-pressed', mode === 'simple'); $('mExpert').setAt
 try { const dm = localStorage.getItem('gaon3-daeMode'); if (dm && DAE_MODE_KO[dm]) $('daeMode').value = dm; } catch (e) {}
 $('daeMode').addEventListener('change', () => { try { localStorage.setItem('gaon3-daeMode', $('daeMode').value); } catch (e) {} render(); });
 $('f').addEventListener('submit', e => { e.preventDefault(); render(); });
+GaonTime.bind($('tcorr'), () => render());
 if (window.Astronomy) { try { render(); } catch (err) { $('msg').textContent = '계산 중 문제가 생겼어요: ' + err.message; } }
 else $('msg').textContent = '천문 계산 라이브러리를 불러오지 못했어요. 새로고침해 주세요.';
 </script>

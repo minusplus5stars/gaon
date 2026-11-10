@@ -11,6 +11,9 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="가온">
+<script src="/lib/gaon-time.js"></script>
+<style>.gaon-time-help{display:block;font-size:11.5px;line-height:1.45;opacity:.75;font-weight:400;margin-top:2px}</style>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700;900&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
@@ -187,7 +190,7 @@ tr.best td{background:var(--soft)}
     <div id="parents" class="sec"></div>
   </section>
 
-  <div class="box"><label class="chk"><input type="checkbox" id="opt-correct"> 동경 127° 기준 시각 보정 (약 −32분, 시주 경계에 적용)</label></div>
+  <div class="box"><label class="f">시각 보정 (출생지는 서울 기준)<select id="opt-time"></select><small class="gaon-time-help"></small></label></div>
   <button class="btn primary" id="run" type="button">택일 계산</button>
   <div id="err" class="err" hidden></div>
   <div id="out" class="res"></div>
@@ -254,6 +257,7 @@ const tenGod=(d,o)=>GOD[mod(STEM_EL[o]-STEM_EL[d],5)][(d%2)===(o%2)?0:1];
 
 /* ===== 사주 ===== */
 let S;
+const SEOUL_LON=126.98;
 function tz(y,m,d){const j=toJdn(y,m,d);let std=9;if(j>=toJdn(1954,3,21)&&j<toJdn(1961,8,10))std=8.5;let off=std;
  if((j>=toJdn(1987,5,10)&&j<toJdn(1987,10,11))||(j>=toJdn(1988,5,8)&&j<toJdn(1988,10,9)))off+=1;return{std,off}}
 function kua(y,sex){if(sex!=='M'&&sex!=='F')return null;const r=x=>{while(x>9)x=String(x).split('').reduce((a,b)=>a+ +b,0);return x};const t=r(y%100);let k;
@@ -262,7 +266,7 @@ function makeChart(y,m,d,hh,mm,known,sex){
  const z=tz(y,m,d),clock=known?hh+mm/60:12,jdUT=jdUTC(y,m,d,clock-z.off);
  const L=sunLon(jdUT),mo=Math.floor(mod(L-315,360)/30);let sy=y;if(m<=2&&mo>=10)sy--;
  const yI=mod(sy-4,60),yStem=yI%10,yBr=yI%12,mBr=(mo+2)%12,mStem=mod(yStem*2+2+mo,10);
- const t=jdUT+(S.correct?127/15:z.std)/24+0.5;let jdn=Math.floor(t);const lh=(t-jdn)*24;
+ const t=jdUT+GaonTime.offsetMs(GaonTime.get(),(jdUT-2440587.5)*864e5,SEOUL_LON,z.std*60)/864e5+0.5;let jdn=Math.floor(t);const lh=(t-jdn)*24;
  if(!known)jdn=toJdn(y,m,d);if(known&&lh>=23)jdn++;
  const dI=mod(jdn+49,60),dStem=dI%10,dBr=dI%12;let hStem=null,hBr=null;
  if(known){hBr=Math.floor((lh+1)/2)%12;hStem=mod(dStem*2+hBr,10)}
@@ -387,15 +391,16 @@ function parentFit(ch,pa,label){let s=0;const lines=[];
  const hasHe=lines.some(l=>l[1]>0&&/합/.test(l[0])),hasCh=lines.some(l=>/충|원진/.test(l[0]));
  const tip=hasCh?'생활 리듬과 감정 표현 방식이 달라 부딪힐 수 있어요. 감정이 올라올 때는 시간을 두고 다시 이야기하는 습관이 도움이 돼요.':hasHe?'정서적으로 잘 붙는 조합이에요. 말하지 않아도 분위기를 읽는 편이라 대화가 편해요.':'무난한 조합이에요. 아이의 표현 방식을 먼저 물어보고 맞춰 주면 소통이 깊어져요.';
  return{score:clamp(50+s,0,100),lines,relTxt,tip}}
-function slotsFor(hs,he){const c=S.correct?(9-127/15):0,out=[];
+function slotsFor(hs,he,c){const out=[];
  for(let b=-1;b<=23;b+=2){const st=b+c,en=b+2+c,lo=Math.max(st,hs),hi=Math.min(en,he);if(hi-lo>=0.25)out.push({mid:(lo+hi)/2,st,en,br:mod((b+1)/2,12)})}return out}
 const hm=h=>{h=mod(h,24);const H=Math.floor(h),M=Math.round((h-H)*60);return M===60?`${String(H+1).padStart(2,'0')}:00`:`${String(H).padStart(2,'0')}:${String(M).padStart(2,'0')}`};
 function computeBirth(){const B=S.birth;const mo=parseP({...B.mom,sex:'F'},'엄마');if(mo.err)return mo;const fa=parseP({...B.dad,sex:'M'},'아빠');if(fa.err)return fa;
  const due=dParse(B.due);if(due===null)return{err:'출산 예정일을 입력해 주세요.'};const rg=+B.range||14,a=due-rg,b=due;
  const tp=s=>{const m=/^(\d{2}):(\d{2})/.exec(s||'');return m?+m[1]+m[2]/60:null};const hs=tp(B.hs),he=tp(B.he);if(hs===null||he===null||he<=hs)return{err:'가능 시간을 시작보다 끝이 늦게 입력해 주세요.'};
- const slots=slotsFor(hs,he);if(!slots.length)return{err:'가능 시간 범위가 너무 좁아요.'};
+ const shiftH=j=>{const dt=fromJdn(j);return 9-GaonTime.offsetMs(GaonTime.get(),Date.UTC(dt.y,dt.m-1,dt.d,3),SEOUL_LON,540)/36e5};
+ const slots=slotsFor(hs,he,shiftH(due));if(!slots.length)return{err:'가능 시간 범위가 너무 좁아요.'};
  const best=new Map(),bad=new Map();
- for(let j=a;j<=b;j++){const dt=fromJdn(j);for(const sl of slots){const H=Math.floor(sl.mid),Mi=Math.round((sl.mid-H)*60)%60;
+ for(let j=a;j<=b;j++){const dt=fromJdn(j);for(const sl of slotsFor(hs,he,shiftH(j))){const H=Math.floor(sl.mid),Mi=Math.round((sl.mid-H)*60)%60;
   const c=makeChart(dt.y,dt.m,dt.d,H,Mi,true,B.sex==='U'?'M':B.sex);const ds=dayScore(c),bs=balScore(c),dw=dwScore(c,B.sex);
   const pm=parentFit(c,mo.c,'엄마'),pf=parentFit(c,fa.c,'아빠'),par=(pm.score+pf.score)/2;
   const total=Math.round(bs*.35+dw.score*.25+ds.score*.25+par*.15),sv=severe(c);
@@ -486,7 +491,7 @@ $('#addMember').onclick=()=>{if(S.move.members.length<4){S.move.members.push({na
 const bind=(id,obj,key,chk)=>{const el=$(id);if(chk)el.checked=!!obj()[key];else el.value=obj()[key]||'';el.addEventListener(chk?'change':'input',()=>{obj()[key]=chk?el.checked:el.value;save()});if(!chk)el.addEventListener('change',()=>{obj()[key]=el.value;save()})};
 bind('#mv-dir',()=>S.move,'dir');bind('#mv-due',()=>S.move,'due');bind('#mv-range',()=>S.move,'range');bind('#mv-weekend',()=>S.move,'weekend',true);
 bind('#bt-sex',()=>S.birth,'sex');bind('#bt-due',()=>S.birth,'due');bind('#bt-range',()=>S.birth,'range');bind('#bt-hs',()=>S.birth,'hs');bind('#bt-he',()=>S.birth,'he');
-bind('#opt-correct',()=>S,'correct',true);
+GaonTime.bind($('#opt-time'),()=>run());
 function setTab(t){S.tab=t;save();$('#tab-move').setAttribute('aria-selected',t==='move');$('#tab-birth').setAttribute('aria-selected',t==='birth');$('#p-move').hidden=t!=='move';$('#p-birth').hidden=t!=='birth';run()}
 $('#tab-move').onclick=()=>setTab('move');$('#tab-birth').onclick=()=>setTab('birth');
 function run(){const err=$('#err'),out=$('#out');err.hidden=true;let R;
