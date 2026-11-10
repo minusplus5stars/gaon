@@ -1,0 +1,1271 @@
+<!doctype html><html lang="ko"><head>
+<meta name="description" content="가온 삼원 차트 · 가온">
+<meta name="theme-color" content="#1C2742">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="가온">
+<style>
+.gaon-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1040px;margin:0 auto;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));
+  font:500 13px "IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+.gaon-nav a{color:inherit;opacity:.7;text-decoration:none}
+.gaon-nav a:hover{opacity:1}
+.gaon-foot{max-width:1040px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-right,0px)) max(28px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  font:12px "IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;opacity:.7;text-align:center}
+.gaon-foot a{color:inherit}
+.gaon-ai-soon{border:1px dashed currentColor;border-radius:8px;padding:14px 16px;opacity:.75;font-size:14px;line-height:1.6}
+.gaon-ai-soon b{display:block;font-size:15px;margin-bottom:2px}
+</style>
+<meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<nav class="gaon-nav"><a href="/">← 가온 홈</a><span style="opacity:.55">가온</span></nav>
+
+<title>가온 삼원 차트</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+Symbols&display=swap">
+<style>
+/* Layout: one working column — birth form, "지금 시기" three-system strip, tabbed chart panels (베딕 / 사주 / 자미두수), shared AI reading */
+:root {
+  --bg: #f6f5f1; --surface: #ffffff; --ink: #1d2338; --muted: #5d6378; --line: #dcdbe2;
+  --lapis: #2c3f86; --brass: #a86f12; --brass-soft: #f4e6c8; --lapis-soft: #e6e9f5;
+  --wood: #2f7a4a; --wood-bg: #e3f1e6; --fire: #b8392b; --fire-bg: #f8e2de; --earth: #8f6210; --earth-bg: #f5ead2;
+  --metal: #5f6372; --metal-bg: #ebebef; --water: #1f4f8f; --water-bg: #e0e8f5; --bad: #b3261e;
+  --f-display: "Gowun Batang", "Nanum Myeongjo", serif;
+  --f-han: "Noto Serif KR", "Gowun Batang", serif;
+  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121522; --surface: #1b1f30; --ink: #e8e6df; --muted: #9da2b5; --line: #2e3348;
+  --lapis: #9fb0ee; --brass: #e2a948; --brass-soft: #3a2f1b; --lapis-soft: #232a45;
+  --wood: #7fcf98; --wood-bg: #1d3326; --fire: #f08a7c; --fire-bg: #3d211d; --earth: #e2b35a; --earth-bg: #3a2f1b;
+  --metal: #c3c6d1; --metal-bg: #2a2d38; --water: #8fb4f0; --water-bg: #1c2a44; --bad: #f28b82; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121522; --surface: #1b1f30; --ink: #e8e6df; --muted: #9da2b5; --line: #2e3348;
+  --lapis: #9fb0ee; --brass: #e2a948; --brass-soft: #3a2f1b; --lapis-soft: #232a45;
+  --wood: #7fcf98; --wood-bg: #1d3326; --fire: #f08a7c; --fire-bg: #3d211d; --earth: #e2b35a; --earth-bg: #3a2f1b;
+  --metal: #c3c6d1; --metal-bg: #2a2d38; --water: #8fb4f0; --water-bg: #1c2a44; --bad: #f28b82; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.6; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px; }
+.wrap > * { min-width: 0; }
+header h1 { font-family: var(--f-display); font-size: clamp(26px, 5vw, 36px); margin: 0; font-weight: 700; text-wrap: balance; }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+.tag { display: inline-block; font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--brass); margin-bottom: 8px; }
+h2 { font-family: var(--f-display); font-size: 21px; margin: 0 0 12px; font-weight: 700; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-size: 17px; margin: 0 0 10px; font-weight: 700; }
+form#f { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); align-items: end; }
+label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 500; }
+input, select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; min-width: 0; }
+input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--lapis); outline-offset: 2px; }
+button { font: inherit; font-weight: 600; background: var(--lapis); color: var(--surface); border: 0; border-radius: 6px; padding: 9px 14px; cursor: pointer; }
+.coords[hidden] { display: none !important; }
+.meta { font-family: var(--f-mono); font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 12px; }
+.meta b { color: var(--ink); font-weight: 500; }
+.example { background: var(--brass-soft); color: var(--brass); font-size: 12.5px; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
+.mode { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--surface); margin-top: 14px; }
+.mode button { background: transparent; color: var(--muted); border-radius: 999px; padding: 6px 14px; font-size: 13.5px; font-weight: 600; }
+.mode button[aria-pressed="true"] { background: var(--lapis); color: var(--surface); }
+body.simple .xp { display: none !important; }
+body:not(.simple) .sp { display: none !important; }
+
+/* now strip */
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 720px) { .trio { grid-template-columns: minmax(0, 1fr); } }
+.trio > div { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--brass); border-radius: 0 0 10px 10px; padding: 12px 14px; }
+.trio .k { font-family: var(--f-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.trio strong { display: block; font-family: var(--f-display); font-size: 18px; margin-top: 2px; }
+.trio p { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+
+/* tabs */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 18px; overflow-x: auto; }
+.tabs button { background: transparent; color: var(--muted); border-radius: 0; padding: 10px 16px; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; font-size: 15px; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--brass); }
+.tabs small { font-family: var(--f-han); font-weight: 500; margin-left: 4px; color: var(--brass); }
+.panel { display: grid; gap: 28px; }
+.panel[hidden] { display: none; }
+.panel > *, .two > *, section { min-width: 0; }
+
+/* Vedic */
+.grid2 { display: grid; gap: 24px; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); align-items: start; }
+@media (max-width: 780px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+.si { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); aspect-ratio: 1; max-width: 100%; border: 1.5px solid var(--ink); background: var(--surface); }
+.cell { border: .5px solid var(--line); padding: 5px 6px; position: relative; font-size: 12.5px; overflow: hidden; display: flex; flex-direction: column; gap: 1px; }
+.cell .sn { font-family: "Noto Sans Symbols", "Segoe UI Symbol", "Apple Symbols", serif; font-size: 17px; line-height: 1; color: var(--brass); font-variant-emoji: text; }
+.cell .pl { font-weight: 600; color: var(--lapis); line-height: 1.35; }
+.cell .pl small { font-family: var(--f-mono); font-weight: 400; color: var(--muted); font-size: 10px; }
+.cell.lagna { background: var(--lapis-soft); }
+.cell .hn { position: absolute; top: 4px; right: 6px; font-family: var(--f-mono); font-size: 11px; font-weight: 500; color: var(--muted); line-height: 1; }
+.cell.lagna .hn { color: var(--brass); font-weight: 600; }
+.cell.lagna::after { content: ""; position: absolute; left: 0; top: 0; width: 22px; height: 22px; background: linear-gradient(135deg, var(--brass) 0 2px, transparent 2px); }
+.center { grid-column: 2 / 4; grid-row: 2 / 4; display: grid; place-content: center; text-align: center; gap: 2px; padding: 8px; border: .5px solid var(--line); }
+.center .nm { font-family: var(--f-display); font-size: 18px; font-weight: 700; }
+.center span { font-size: 11.5px; color: var(--muted); font-family: var(--f-mono); }
+.tablebox { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-size: 11.5px; letter-spacing: .05em; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+tr:last-child td { border-bottom: 0; }
+td.mono { font-family: var(--f-mono); font-size: 12.5px; }
+.R { font-family: var(--f-mono); font-size: 10.5px; color: var(--brass); font-weight: 600; margin-left: 4px; }
+.sys { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12.5px; margin-top: 10px; color: var(--muted); }
+.sys span { border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; }
+.now { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--brass); border-radius: 0 10px 10px 0; padding: 14px 16px; margin-bottom: 14px; }
+.now strong { font-family: var(--f-display); font-size: 19px; }
+.now p { margin: 4px 0 0; color: var(--muted); font-size: 13.5px; }
+details { border-bottom: 1px solid var(--line); }
+details:last-child { border-bottom: 0; }
+summary { cursor: pointer; padding: 10px 14px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary .d { font-family: var(--f-mono); font-size: 12.5px; color: var(--muted); }
+details.cur summary { background: var(--brass-soft); }
+details.cur summary b::after { content: "현재"; margin-left: 8px; font-size: 11px; color: var(--brass); font-weight: 600; }
+.subs { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 2px 16px; padding: 4px 14px 12px; font-size: 13px; }
+.subs div { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; }
+.subs div.cur { color: var(--brass); font-weight: 600; }
+.subs .d { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.note { font-size: 13px; color: var(--muted); max-width: 70ch; margin: 0; }
+.err { color: var(--bad); font-size: 13.5px; }
+.d9info { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; align-self: end; min-width: 0; }
+.d9info p { margin: 0; padding: 12px 14px 0; font-size: 14px; color: var(--ink); max-width: 62ch; }
+.d9info p:last-child { padding-bottom: 14px; }
+.area { color: var(--muted); font-size: 12.5px; }
+
+/* element colours */
+.e0 { color: var(--wood); background: var(--wood-bg); } .e1 { color: var(--fire); background: var(--fire-bg); }
+.e2 { color: var(--earth); background: var(--earth-bg); } .e3 { color: var(--metal); background: var(--metal-bg); }
+.e4 { color: var(--water); background: var(--water-bg); }
+
+/* Saju */
+.pillars { display: grid; grid-template-columns: 64px repeat(4, minmax(0, 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.pillars > div { padding: 6px 4px; text-align: center; border-bottom: 1px solid var(--line); font-size: 13px; display: grid; place-items: center; min-width: 0; }
+.pillars > .rh { font-size: 11.5px; color: var(--muted); font-weight: 600; justify-items: start; padding-left: 10px; }
+.pillars > .colh { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .04em; }
+.pillars > .colh.me { color: var(--brass); }
+.pillars > .last { border-bottom: 0; }
+.ch { font-family: var(--f-han); font-size: clamp(30px, 7vw, 40px); line-height: 1; font-weight: 700; padding: 10px 0 !important; gap: 4px; margin: 3px; border-radius: 8px; }
+.ch small { font-family: var(--f-body); font-size: 12px; font-weight: 500; opacity: .85; }
+.god { font-weight: 600; color: var(--lapis); }
+.hid { font-family: var(--f-han); letter-spacing: .1em; }
+.elbar { display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.elrow { display: grid; grid-template-columns: 54px minmax(0, 1fr) 24px; gap: 10px; align-items: center; font-size: 13.5px; }
+.elrow .track { height: 12px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+.elrow .fill { height: 100%; border-radius: 3px; }
+.elrow .fill.e0 { background: var(--wood); } .elrow .fill.e1 { background: var(--fire); } .elrow .fill.e2 { background: var(--earth); } .elrow .fill.e3 { background: var(--metal); } .elrow .fill.e4 { background: var(--water); }
+.elrow b { font-family: var(--f-mono); text-align: right; font-weight: 500; }
+.chipline { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.chipline b { color: var(--ink); font-weight: 600; }
+.daeun { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(64px, 1fr); gap: 4px; overflow-x: auto; padding-bottom: 4px; direction: rtl; }
+.daeun > div { direction: ltr; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 4px; text-align: center; display: grid; gap: 3px; }
+.daeun > div.cur { border-color: var(--brass); background: var(--brass-soft); }
+.daeun .age { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.daeun .gz { font-family: var(--f-han); font-size: 22px; font-weight: 700; line-height: 1.15; display: grid; gap: 2px; justify-items: center; }
+.daeun .gz span { width: 34px; border-radius: 5px; }
+.daeun .g { font-size: 11px; color: var(--lapis); font-weight: 600; }
+.daeun .yr { font-family: var(--f-mono); font-size: 10.5px; color: var(--muted); }
+.two { display: grid; gap: 24px; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 780px) { .two { grid-template-columns: minmax(0, 1fr); } }
+.explain { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+.explain p { margin: 0 0 8px; max-width: 62ch; } .explain p:last-child { margin: 0; }
+
+/* Ziwei */
+.zwbox { overflow-x: auto; }
+.zw { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); grid-template-rows: repeat(4, minmax(150px, auto)); border: 1.5px solid var(--ink); background: var(--surface); min-width: 620px; }
+.zc { border: .5px solid var(--line); padding: 6px 7px 5px; display: grid; grid-template-rows: 1fr auto; gap: 4px; font-size: 12.5px; position: relative; }
+.zc.ming { background: var(--lapis-soft); }
+.zc.dx { box-shadow: inset 0 0 0 2px var(--brass); }
+.zc .stars { display: flex; flex-wrap: wrap; gap: 1px 6px; align-content: start; }
+.zc .mj { font-weight: 700; color: var(--lapis); font-size: 14px; }
+.zc .gd { color: var(--wood); } .zc .bd { color: var(--bad); }
+.zc .mn { font-size: 12px; }
+.zc .zp { font-size: 11px; color: var(--muted); }
+.zc .zp.gd { color: var(--wood); opacity: .85; } .zc .zp.bd { color: var(--bad); opacity: .9; }
+.zc .bd { font-weight: 600; }
+.br { font-size: 9.5px; font-weight: 600; margin-left: 1px; vertical-align: 4px; color: var(--muted); }
+.br.b-묘, .br.b-왕 { color: var(--wood); } .br.b-함, .br.b-불 { color: var(--bad); }
+.zc .cs { font-size: 10.5px; color: var(--muted); }
+.zopts { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin-bottom: 10px; font-size: 13px; }
+.zopts label { display: inline-flex; flex-direction: row; gap: 6px; align-items: center; color: var(--ink); font-size: 13px; cursor: pointer; }
+.zopts input { padding: 0; margin: 0; }
+.zw.nozap .zp { display: none; }
+.zw { position: relative; }
+.zc { cursor: pointer; }
+.zc:focus-visible { outline: 2px solid var(--lapis); outline-offset: -2px; }
+.zc.sel { outline: 2px solid var(--lapis); outline-offset: -4px; }
+.zc.sf { background: color-mix(in srgb, var(--brass-soft) 55%, transparent); }
+.zc.dg { background: color-mix(in srgb, var(--lapis-soft) 70%, transparent); }
+.zc.ming.sel, .zc.ming.sf, .zc.ming.dg { background: var(--lapis-soft); }
+.zc .flags { position: absolute; top: 4px; right: 5px; display: flex; gap: 3px; }
+.zc .flags span { font-size: 10.5px; font-weight: 700; border-radius: 3px; padding: 0 4px; line-height: 1.5; }
+.f-yn { color: var(--brass); } .f-sel { background: var(--lapis); color: var(--surface); } .f-sf { background: var(--brass); color: var(--surface); } .f-dg { border: 1px solid var(--lapis); color: var(--lapis); }
+.zlines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: visible; }
+.zcenter { position: relative; z-index: 1; }
+.zcenter > * { text-shadow: 0 0 4px var(--surface), 0 0 4px var(--surface); }
+.zopts .qb { background: transparent; color: var(--lapis); border: 1px solid var(--line); padding: 4px 10px; font-size: 12.5px; border-radius: 999px; }
+.zopts .qb[aria-pressed="true"] { background: var(--lapis); color: var(--surface); border-color: var(--lapis); }
+.sfline { margin: 0 0 10px; font-size: 13.5px; color: var(--ink); }
+.sfline b { font-weight: 600; }
+.hua { font-size: 10.5px; font-weight: 700; color: var(--surface); background: var(--brass); border-radius: 3px; padding: 0 3px; margin-left: 2px; vertical-align: 1px; }
+.hua.ji { background: var(--bad); }
+.zc .foot { display: flex; justify-content: space-between; align-items: end; gap: 6px; border-top: 1px dashed var(--line); padding-top: 3px; }
+.zc .pn { font-family: var(--f-display); font-weight: 700; font-size: 14px; }
+.zc .pn em { font-style: normal; font-size: 11px; color: var(--brass); margin-left: 3px; font-family: var(--f-body); }
+.zc .gzs { font-family: var(--f-han); color: var(--muted); font-size: 12.5px; }
+.zc .dxr { font-family: var(--f-mono); font-size: 10.5px; color: var(--muted); }
+.zc .ps { font-size: 11px; color: var(--muted); line-height: 1.35; }
+.zcenter { grid-column: 2 / 4; grid-row: 2 / 4; display: grid; place-content: center; text-align: center; gap: 3px; border: .5px solid var(--line); padding: 10px; }
+.zcenter .nm { font-family: var(--f-display); font-size: 20px; font-weight: 700; }
+.zcenter span { font-size: 12px; color: var(--muted); }
+.zcenter .ju { font-family: var(--f-han); font-size: 15px; color: var(--ink); font-weight: 700; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+.legend i { font-style: normal; font-weight: 700; }
+
+/* Chat */
+.chat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; display: grid; }
+.msgs { display: grid; gap: 14px; padding: 16px; max-height: 70vh; overflow-y: auto; }
+.m { max-width: 88%; padding: 10px 14px; border-radius: 12px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere; font-size: 14.5px; line-height: 1.7; }
+.m.u { justify-self: end; background: var(--lapis); color: var(--surface); border-bottom-right-radius: 4px; }
+.m.a { justify-self: start; background: var(--bg); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.m.a.wait { color: var(--muted); font-style: italic; }
+.m.sys { justify-self: center; background: none; color: var(--muted); font-size: 13px; text-align: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 12px; }
+.chip { background: var(--lapis-soft); color: var(--lapis); font-weight: 500; font-size: 13px; padding: 6px 12px; border-radius: 999px; }
+.scope { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 12px 16px 0; font-size: 12.5px; color: var(--muted); }
+.scope label { display: inline-flex; flex-direction: row; align-items: center; gap: 5px; font-size: 13px; color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+.scope input { padding: 0; margin: 0; }
+.chatbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+.chatbar .st { font-size: 12.5px; color: var(--muted); }
+.chatbar .st.ok { color: var(--wood); font-weight: 600; }
+.copybtn { display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--lapis); border: 1px solid var(--line); padding: 6px 12px; font-size: 13px; border-radius: 999px; }
+.copybtn:hover { background: var(--lapis-soft); }
+.copybtn svg { width: 15px; height: 15px; }
+.copyfb { margin: 0 16px 12px; display: grid; gap: 6px; }
+.copyfb textarea { width: 100%; box-sizing: border-box; min-height: 160px; font: 13px/1.6 var(--f-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+.composer { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+.composer textarea { flex: 1; min-width: 0; resize: none; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; min-height: 44px; }
+.composer button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+.guide { margin-top: 12px; font-size: 13.5px; border-bottom: 0; }
+.guide summary { padding: 6px 0; color: var(--muted); font-weight: 500; justify-content: flex-start; }
+.guide textarea { width: 100%; box-sizing: border-box; min-height: 260px; font-family: var(--f-mono); font-size: 12.5px; line-height: 1.6; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+.guide .row { display: flex; gap: 8px; align-items: center; margin-top: 6px; color: var(--muted); font-size: 12.5px; flex-wrap: wrap; }
+.guide .row button { padding: 5px 10px; font-size: 12.5px; background: transparent; color: var(--lapis); border: 1px solid var(--line); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="tag">Jyotish · 四柱 · 紫微斗數</div>
+    <h1>가온 삼원 차트</h1>
+    <p>한 번의 출생 정보로 베딕 차트(빌헬름 방식), 사주 원국과 대운, 자미두수 명반을 함께 계산합니다. 한국의 역사적 표준시와 서머타임, 한국 음력을 자동으로 반영해요.</p>
+    <div class="mode" role="group" aria-label="보기 방식">
+      <button type="button" id="mSimple" aria-pressed="false">쉬운 풀이</button>
+      <button type="button" id="mExpert" aria-pressed="true">전문가용</button>
+    </div>
+  </header>
+
+  <section>
+    <h2>출생 정보</h2>
+    <form id="f">
+      <label>이름<input id="nm" value="예시 차트"></label>
+      <label>성별<select id="gender"><option value="F">여성</option><option value="M">남성</option></select></label>
+      <label>생년월일 (양력)<input id="dt" type="date" value="1985-03-14" required></label>
+      <label>태어난 시각<input id="tm" type="time" value="11:30" required></label>
+      <label>출생지<select id="city"></select></label>
+      <label class="coords" id="latL" hidden>위도<input id="lat" type="number" step="0.0001" value="37.5665"></label>
+      <label class="coords" id="lonL" hidden>경도<input id="lon" type="number" step="0.0001" value="126.978"></label>
+      <label>사주·자미 시각 기준<select id="tcorr"><option value="lmt">출생지 경도 보정 (지방평균시)</option><option value="std">표준시 그대로</option></select></label>
+      <label>대운 시점<select id="daeMode"><option value="exact">정밀 (절입 일수÷3, 날짜까지)</option><option value="korean">대운수 + 세는 나이</option><option value="intl">대운수 + 만 나이</option></select></label>
+      <label>자시 처리<select id="zi"><option value="day23">23시에 날짜 바뀜</option><option value="split">야자시 (자정에 날짜 바뀜)</option></select></label>
+      <button type="submit">차트 계산</button>
+    </form>
+    <div id="msg" class="err" role="alert"></div>
+    <div class="meta" id="meta"></div>
+  </section>
+
+  <section>
+    <h2>지금 시기, 세 체계로</h2>
+    <div class="trio" id="trio"></div>
+  </section>
+
+  <section>
+    <div class="tabs" role="tablist" aria-label="차트 체계">
+      <button type="button" role="tab" id="t-vedic" aria-controls="p-vedic" aria-selected="true">베딕<small>Jyotish</small></button>
+      <button type="button" role="tab" id="t-saju" aria-controls="p-saju" aria-selected="false">사주<small>四柱</small></button>
+      <button type="button" role="tab" id="t-ziwei" aria-controls="p-ziwei" aria-selected="false">자미두수<small>紫微</small></button>
+    </div>
+
+    <div class="panel" id="p-vedic" role="tabpanel" aria-labelledby="t-vedic">
+      <div class="grid2">
+        <div>
+          <div class="si" id="si" aria-label="남인도식 라시 차트"></div>
+          <div class="sys xp"><span>라시: 트로피컬</span><span>낙샤트라: 드루바 적도</span><span>하우스: 홀사인</span><span>노드: 트루</span><span>칸 오른쪽 위 숫자: 하우스</span><span>다샤: Saura년</span></div>
+        </div>
+        <div class="tablebox"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
+      </div>
+      <div class="grid2">
+        <div>
+          <h2 id="d9H">나밤샤 (D9)</h2>
+          <div class="si" id="d9" aria-label="남인도식 나밤샤 차트"></div>
+        </div>
+        <div class="d9info" id="d9info"></div>
+      </div>
+      <div>
+        <h2 id="dashaH">빔쇼타리 다샤</h2>
+        <div class="now" id="now"></div>
+        <div class="tablebox" id="dasha"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="p-saju" role="tabpanel" aria-labelledby="t-saju" hidden>
+      <div class="two">
+        <div>
+          <h2>사주 원국</h2>
+          <div class="pillars" id="pillars"></div>
+          <p class="note xp" id="sajuNote" style="margin-top:10px"></p>
+        </div>
+        <div style="display:grid;gap:14px">
+          <div>
+            <h3>오행 분포</h3>
+            <div class="elbar" id="elbar"></div>
+          </div>
+          <div class="chipline xp" id="sajuExtra"></div>
+          <div class="explain sp" id="sajuSimple"></div>
+        </div>
+      </div>
+      <div>
+        <h2 id="daeunH">대운</h2>
+        <div class="now" id="daeunNow"></div>
+        <div class="daeun" id="daeun"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="p-ziwei" role="tabpanel" aria-labelledby="t-ziwei" hidden>
+      <div>
+        <h2>자미두수 명반</h2>
+        <div class="zopts"><label><input type="checkbox" id="showZap" checked>잡성 표시</label><label><input type="checkbox" id="showBr" checked>밝기 표시</label><span class="area">삼방사정 기준</span><button type="button" class="qb" id="qMing">명궁</button><button type="button" class="qb" id="qDx">현재 대한</button><button type="button" class="qb" id="qYn">유년</button><span class="area">· 궁을 누르면 그 궁 기준으로 바뀌어요</span></div>
+        <p class="sfline" id="sfline"></p>
+        <div class="zwbox"><div class="zw" id="zw" aria-label="자미두수 12궁 명반"></div></div>
+        <div class="legend"><span><i style="color:var(--lapis)">굵은 글씨</i> 14주성</span><span><i style="color:var(--wood)">초록</i> 길성</span><span><i style="color:var(--bad)">빨강</i> 흉성(육살·잡흉성)</span><span><i>작은 회색</i> 중성 잡성</span><span>밝기 <i style="color:var(--wood)">묘·왕</i> · 득·리·평 · <i style="color:var(--bad)">불·함</i></span><span><span class="hua">록</span><span class="hua">권</span><span class="hua">과</span><span class="hua ji">기</span> 생년사화</span><span>금색 테두리 = 현재 대한</span><span><i style="color:var(--brass)">실선 삼각형</i> 본궁·삼방</span><span><i style="color:var(--lapis)">점선</i> 대궁</span></div>
+      </div>
+      <div class="explain" id="zwInfo"></div>
+    </div>
+  </section>
+
+  <section class="gaon-ai-soon"><b>가온의 AI 리딩 · 준비 중</b>차트를 바탕으로 대화하며 풀이를 받는 기능은 곧 열려요. 지금은 위의 차트와 표를 먼저 살펴보세요.</section>
+<section hidden style="display:none">
+    <h2>가온의 AI 리딩</h2>
+    <div class="chat">
+      <div class="scope" role="group" aria-label="리딩에 쓸 체계">
+        <span>리딩에 쓸 체계</span>
+        <label><input type="checkbox" id="useV" checked>베딕</label>
+        <label><input type="checkbox" id="useS" checked>사주</label>
+        <label><input type="checkbox" id="useZ" checked>자미두수</label>
+      </div>
+      <div class="chatbar">
+        <span class="st" id="copySt" role="status">질문과 답을 한 번에 복사할 수 있어요</span>
+        <button type="button" class="copybtn" id="copyAll"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>상담 내용 전체 복사</button>
+      </div>
+      <div class="copyfb" id="copyFb" hidden><span class="area">자동 복사가 막혀 있어요. 아래 글을 길게 눌러 전체 선택한 뒤 복사해 주세요.</span><textarea id="copyTa" readonly aria-label="복사할 상담 내용"></textarea></div>
+      <div class="msgs" id="msgs" aria-live="polite"></div>
+      <div class="chips" id="chips">
+        <button class="chip" type="button">세 체계가 공통으로 말하는 성향은 뭔가요?</button>
+        <button class="chip" type="button">지금 시기를 세 체계로 비교해 주세요</button>
+        <button class="chip" type="button">일과 진로는 어떻게 보이나요?</button>
+        <button class="chip" type="button">연애와 결혼은 어떤가요?</button>
+      </div>
+      <form class="composer" id="cf">
+        <textarea id="q" rows="1" placeholder="차트에 대해 궁금한 걸 물어보세요"></textarea>
+        <button type="button" class="ghost" id="stop" hidden>멈춤</button>
+        <button type="submit" id="send">보내기</button>
+      </form>
+    </div>
+    <details class="guide">
+      <summary>해석 지침 (AI에게 주는 가온의 리딩 원칙)</summary>
+      <textarea id="rules" aria-label="해석 지침"></textarea>
+      <div class="row"><span>이 브라우저에만 저장돼요. 고친 내용은 다음 질문부터 반영돼요.</span><button type="button" id="resetRules">기본값으로 되돌리기</button></div>
+    </details>
+  </section>
+
+  <p class="note">베딕은 빌헬름이 권하는 Kala 설정(트루 노드, 드루바 적도 낙샤트라, Saura년)에 맞췄어요. 사주는 입춘·절입 시각을 천문 계산으로 구하고, 대운수는 3일=1년으로 반올림하고, 대운이 바뀌는 시점은 정밀 계산·세는 나이·만 나이 중에서 고를 수 있어요. 자미두수는 한국 음력(동경 135° 기준)으로 명반을 세우고, 윤달은 15일까지 그 달·16일부터 다음 달로 봐요. 주성 밝기는 전서 계열 통용표를 썼고(유파에 따라 몇 칸이 다를 수 있어요), 대한·유년 사화와 박사·태세 12신은 아직 넣지 않았어요.</p>
+</div>
+
+<script src="/lib/astronomy.browser.min.js"></script>
+<script>
+// Ernst Wilhelm style chart calc: tropical rasis, sidereal nakshatras (Wilhelm galactic-center ayanamsa)
+(function (root) {
+  const A = root.Astronomy || (typeof require !== 'undefined' ? require('astronomy-engine') : null);
+  const norm = x => ((x % 360) + 360) % 360;
+  const rad = Math.PI / 180;
+
+  function wilhelmAyanamsa(jdUT) {
+    const T = (jdUT - 2451545) / 36525;
+    return 20.03923 + 1.45858425 * T + 0.000499926 * T * T;
+  }
+
+  // Dhruva equatorial nakshatras: right ascension measured from the galactic centre (Sgr A*) set at mid-Mula
+  function equatorialNak(date, trop) {
+    const t = A.MakeTime(date);
+    const R = A.Rotation_EQJ_EQD(t);
+    const gc = A.EquatorFromVector(A.RotateVector(R, A.VectorFromSphere(new A.Spherical(-29.00781, 266.41683, 1), t)));
+    const eqAy = gc.ra * 15 - (18.5 * 360 / 27) + 0.004; // +0.004° calibrated against Kala output
+    const eps = A.e_tilt(t).tobl * rad;
+    const ra = {};
+    ra.Moon = A.EquatorFromVector(A.RotateVector(R, A.GeoMoon(t))).ra * 15;
+    for (const b of ['Sun', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']) ra[b] = A.EquatorFromVector(A.RotateVector(R, A.GeoVector(b, t, true))).ra * 15;
+    for (const p of ['Rahu', 'Ketu']) { const l = trop[p] * rad; ra[p] = norm(Math.atan2(Math.sin(l) * Math.cos(eps), Math.cos(l)) / rad); }
+    const out = {};
+    for (const p of Object.keys(ra)) out[p] = norm(ra[p] - eqAy);
+    return { pos: out, eqAy };
+  }
+
+  function planetLongs(date) {
+    const t = A.MakeTime(date);
+    const out = {};
+    out.Sun = A.SunPosition(t).elon;
+    out.Moon = A.EclipticGeoMoon(t).lon;
+    for (const b of ['Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']) {
+      out[b] = A.Ecliptic(A.GeoVector(b, t, true)).elon;
+    }
+    // True (osculating) node from the Moon's instantaneous orbit plane, ecliptic of date
+    const R = A.Rotation_EQJ_ECT(t);
+    const mp = ms => A.RotateVector(R, A.GeoMoon(A.MakeTime(new Date(date.getTime() + ms))));
+    const a = mp(-600e3), b = mp(600e3), c = mp(0);
+    const v = { x: b.x - a.x, y: b.y - a.y, z: b.z - a.z };
+    const node = norm(Math.atan2(c.y * v.z - c.z * v.y, -(c.z * v.x - c.x * v.z)) / rad);
+    out.Rahu = node; out.Ketu = norm(node + 180);
+    return { longs: out, t };
+  }
+
+  function ascendant(t, lat, lon) {
+    const gast = A.SiderealTime(t); // hours
+    const ramc = norm(gast * 15 + lon) * rad;
+    const eps = A.e_tilt(t).tobl * rad;
+    const asc = Math.atan2(Math.cos(ramc), -(Math.sin(ramc) * Math.cos(eps) + Math.tan(lat * rad) * Math.sin(eps)));
+    return norm(asc / rad);
+  }
+
+  const RASI = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+  const RASI_KO = ['양자리(메샤)','황소자리(브리샤바)','쌍둥이자리(미투나)','게자리(카르카)','사자자리(심하)','처녀자리(칸야)','천칭자리(툴라)','전갈자리(브리쉬치카)','사수자리(다누)','염소자리(마카라)','물병자리(쿰바)','물고기자리(미나)'];
+  const NAK = ['Ashwini','Bharani','Krittika','Rohini','Mrigashira','Ardra','Punarvasu','Pushya','Ashlesha','Magha','Purva Phalguni','Uttara Phalguni','Hasta','Chitra','Swati','Vishakha','Anuradha','Jyeshtha','Mula','Purva Ashadha','Uttara Ashadha','Shravana','Dhanishta','Shatabhisha','Purva Bhadrapada','Uttara Bhadrapada','Revati'];
+  const DASHA_ORDER = ['Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury'];
+  const DASHA_YRS = { Ketu: 7, Venus: 20, Sun: 6, Moon: 10, Mars: 7, Rahu: 18, Jupiter: 16, Saturn: 19, Mercury: 17 };
+  const PL_KO = { Sun:'태양(수리야)', Moon:'달(찬드라)', Mars:'화성(망갈라)', Mercury:'수성(부다)', Jupiter:'목성(구루)', Venus:'금성(슈크라)', Saturn:'토성(샤니)', Rahu:'라후', Ketu:'케투', Asc:'라그나(상승점)' };
+
+  function nakInfo(sid) {
+    const span = 360 / 27;
+    const i = Math.floor(sid / span);
+    const within = sid - i * span;
+    return { index: i, name: NAK[i], pada: Math.floor(within / (span / 4)) + 1, lord: DASHA_ORDER[i % 9], frac: within / span };
+  }
+
+  const YEAR_MS = 365.24219 * 86400000; // Saura year
+  function vimshottari(moonSid, birth) {
+    const n = nakInfo(moonSid);
+    let idx = DASHA_ORDER.indexOf(n.lord);
+    const first = DASHA_YRS[n.lord] * (1 - n.frac);
+    const list = [];
+    let start = new Date(birth.getTime() - DASHA_YRS[n.lord] * n.frac * YEAR_MS);
+    for (let k = 0; k < 9; k++) {
+      const lord = DASHA_ORDER[(idx + k) % 9];
+      const end = new Date(start.getTime() + DASHA_YRS[lord] * YEAR_MS);
+      const subs = [];
+      let s = start;
+      for (let j = 0; j < 9; j++) {
+        const sl = DASHA_ORDER[(DASHA_ORDER.indexOf(lord) + j) % 9];
+        const e = new Date(s.getTime() + DASHA_YRS[lord] * DASHA_YRS[sl] / 120 * YEAR_MS);
+        subs.push({ lord: sl, start: s, end: e }); s = e;
+      }
+      list.push({ lord, start, end, subs });
+      start = end;
+    }
+    return { balanceYears: first, list };
+  }
+
+  function chart(dateUTC, lat, lon) {
+    const { longs, t } = planetLongs(dateUTC);
+    const next = planetLongs(new Date(dateUTC.getTime() + 86400000)).longs;
+    longs.Asc = ascendant(t, lat, lon);
+    const jd = t.ut + 2451545;
+    const ay = wilhelmAyanamsa(jd);
+    const lagnaSign = Math.floor(longs.Asc / 30);
+    const eqn = equatorialNak(dateUTC, longs);
+    const rows = {};
+    for (const [p, trop] of Object.entries(longs)) {
+      const sign = Math.floor(trop / 30);
+      const sid = p === 'Asc' ? norm(trop - ay) : eqn.pos[p];
+      const retro = (p !== 'Asc' && p !== 'Rahu' && p !== 'Ketu' && ((next[p] - trop + 540) % 360 - 180) < 0);
+      const nv = trop / (30 / 9);
+      rows[p] = { retro, d9sign: Math.floor(nv) % 12, d9deg: (nv - Math.floor(nv)) * 30, trop, sign, deg: trop - sign * 30, house: ((sign - lagnaSign + 12) % 12) + 1, sid, nak: nakInfo(sid) };
+    }
+    return { rows, ayanamsa: ay, eqAyanamsa: eqn.eqAy, lagnaSign, dasha: vimshottari(rows.Moon.sid, dateUTC) };
+  }
+
+  const api = { chart, wilhelmAyanamsa, RASI, RASI_KO, NAK, PL_KO, DASHA_ORDER, norm };
+  if (typeof module !== 'undefined') module.exports = api; else root.VedicCalc = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+// 사주(四柱) · 자미두수(紫微斗數) · 한국 음력 계산
+(function (root) {
+  const A = root.Astronomy || (typeof require !== 'undefined' ? require('astronomy-engine') : null);
+  const DAY = 86400000;
+  const mod = (a, n) => ((a % n) + n) % n;
+
+  const GAN = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  const GAN_KO = ['갑','을','병','정','무','기','경','신','임','계'];
+  const ZHI = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  const ZHI_KO = ['자','축','인','묘','진','사','오','미','신','유','술','해'];
+  const ZHI_ANIMAL = ['쥐','소','호랑이','토끼','용','뱀','말','양','원숭이','닭','개','돼지'];
+  const EL = ['목','화','토','금','수']; // wood fire earth metal water
+  const EL_HAN = ['木','火','土','金','水'];
+  const GAN_EL = [0,0,1,1,2,2,3,3,4,4];
+  const ZHI_EL = [4,2,0,0,2,1,1,2,3,3,2,4];
+  // 지장간 (여기 → 중기 → 본기), 마지막이 본기
+  const HIDDEN = [[8,9],[9,7,5],[4,2,0],[0,1],[1,9,4],[4,6,2],[2,5,3],[3,1,5],[4,8,6],[6,7],[7,3,4],[4,0,8]];
+  const GOD = ['비견','겁재','식신','상관','편재','정재','편관','정관','편인','정인'];
+  const STAGE = ['장생','목욕','관대','건록','제왕','쇠','병','사','묘','절','태','양'];
+  const CHANGSHENG = [11,6,2,9,2,9,5,0,8,3]; // 각 천간의 장생지
+
+  const ganzhi = i => ({ s: mod(i, 10), b: mod(i, 12), i: mod(i, 60) });
+  const gzIndex = (s, b) => mod(6 * s - 5 * b, 60);
+
+  function tenGod(dayStem, otherStem) {
+    const d = GAN_EL[dayStem], o = GAN_EL[otherStem];
+    const same = (dayStem % 2) === (otherStem % 2);
+    const rel = mod(o - d, 5); // 0 same,1 I produce,2 I control,3 controls me,4 produces me
+    return GOD[rel * 2 + (same ? 0 : 1)];
+  }
+  function stage(dayStem, branch) {
+    const start = CHANGSHENG[dayStem];
+    const k = dayStem % 2 === 0 ? mod(branch - start, 12) : mod(start - branch, 12);
+    return STAGE[k];
+  }
+
+  // ---------- 절기 ----------
+  const sunLonAt = ms => A.SunPosition(A.MakeTime(new Date(ms))).elon;
+  function findSunLon(lon, fromMs, days) {
+    const t = A.SearchSunLongitude(lon, A.MakeTime(new Date(fromMs)), days);
+    return t ? t.date.getTime() : null;
+  }
+  // 직전/다음 절(節: 황경 15+30k)
+  function prevNextJie(ms) {
+    const lam = sunLonAt(ms);
+    const k = Math.floor(mod(lam - 15, 360) / 30);
+    const prevLon = mod(15 + 30 * k, 360), nextLon = mod(prevLon + 30, 360);
+    const prev = findSunLon(prevLon, ms - 40 * DAY, 45);
+    const next = findSunLon(nextLon, ms, 40);
+    return { prev, next, prevLon, nextLon };
+  }
+
+  // ---------- 사주 ----------
+  // utcMs: 실제 출생 순간, localMin: 시주·일주 판단용 현지 시각(분 단위 벽시계, UTC 기준 epoch ms), opt.ziMode: 'split'(야자시) | 'day23'
+  function saju(utcMs, localMs, gender, opt = {}) {
+    const lam = sunLonAt(utcMs);
+    const lt = new Date(localMs);
+    let Y = lt.getUTCFullYear();
+    // 입춘(315°) 기준 연도
+    const lichun = findSunLon(315, Date.UTC(Y, 0, 20), 30);
+    if (utcMs < lichun) Y -= 1;
+    const year = ganzhi(Y - 4);
+    // 월주: 寅월 시작 황경 315
+    const mIdx = Math.floor(mod(lam - 315, 360) / 30); // 0 = 寅월
+    const mStem = mod((year.s % 5) * 2 + 2 + mIdx, 10);
+    const month = { s: mStem, b: mod(2 + mIdx, 12) }; month.i = gzIndex(month.s, month.b);
+    // 일주
+    const hm = lt.getUTCHours() * 60 + lt.getUTCMinutes();
+    const civilDay = Math.floor(localMs / DAY); // days since 1970-01-01 (local wall date)
+    const jdn = civilDay + 2440588;
+    let dayShift = 0, hourDayShift = 0;
+    if (hm >= 23 * 60) { if (opt.ziMode === 'split') hourDayShift = 1; else dayShift = 1; }
+    const day = ganzhi(jdn + dayShift + 49);
+    const hb = Math.floor(((hm + 60) % 1440) / 120);
+    const hourBaseStem = mod(day.s + hourDayShift, 10);
+    const hour = { s: mod((hourBaseStem % 5) * 2 + hb, 10), b: hb }; hour.i = gzIndex(hour.s, hour.b);
+    const pillars = { hour, day, month, year };
+    // 십성 · 12운성 · 지장간
+    const info = {};
+    for (const [k, p] of Object.entries(pillars)) {
+      const hid = HIDDEN[p.b];
+      info[k] = { stemGod: k === 'day' ? '일간' : tenGod(day.s, p.s), branchGod: tenGod(day.s, hid[hid.length - 1]), hidden: hid, stage: stage(day.s, p.b) };
+    }
+    // 오행 분포 (천간 4 + 지지 4, 지지는 본기 오행)
+    const count = [0, 0, 0, 0, 0];
+    for (const p of Object.values(pillars)) { count[GAN_EL[p.s]]++; count[ZHI_EL[p.b]]++; }
+    // 공망 (일주 기준)
+    const xun = Math.floor(day.i / 10);
+    const kong = [mod(10 - 2 * xun, 12), mod(11 - 2 * xun, 12)];
+    // 대운
+    const yangYear = year.s % 2 === 0;
+    const forward = (yangYear && gender === 'M') || (!yangYear && gender === 'F');
+    const jie = prevNextJie(utcMs);
+    const diffDays = forward ? (jie.next - utcMs) / DAY : (utcMs - jie.prev) / DAY;
+    const startYears = diffDays / 3; // 3일 = 1년
+    const daeNum = Math.max(1, Math.round(startYears));
+    const YEAR = 365.2422 * DAY;
+    const dae = [];
+    for (let k = 1; k <= 10; k++) {
+      const i = mod(month.i + (forward ? k : -k), 60);
+      const g = ganzhi(i);
+      const start = utcMs + (startYears + (k - 1) * 10) * YEAR;
+      dae.push({ ...g, age: daeNum + (k - 1) * 10, start: new Date(start), end: new Date(start + 10 * YEAR), stemGod: tenGod(day.s, g.s), branchGod: tenGod(day.s, HIDDEN[g.b][HIDDEN[g.b].length - 1]) });
+    }
+    const JIE = { 315: '입춘', 345: '경칩', 15: '청명', 45: '입하', 75: '망종', 105: '소서', 135: '입추', 165: '백로', 195: '한로', 225: '입동', 255: '대설', 285: '소한' };
+    return { pillars, info, count, kong, forward, daeNum, startYears, diffDays, dae, jiePrev: new Date(jie.prev), jieNext: new Date(jie.next),
+      refJie: { name: JIE[forward ? jie.nextLon : jie.prevLon], at: new Date(forward ? jie.next : jie.prev) } };
+  }
+  function yearPillar(Y) { return ganzhi(Y - 4); }
+  // 입춘 기준 사주 연도
+  function solarYear(ms) { const Y = new Date(ms + 9 * 3600000).getUTCFullYear(); return ms < findSunLon(315, Date.UTC(Y, 0, 20), 30) ? Y - 1 : Y; }
+
+  // ---------- 음력 (한국, UTC+9 기준) ----------
+  const KST = 9 * 3600000;
+  const dayNum = ms => Math.floor((ms + KST) / DAY);
+  const lunarCache = {};
+  function lunarMonthsAround(Y) {
+    if (lunarCache[Y]) return lunarCache[Y];
+    // 동지 3개
+    const sol = [Y - 1, Y, Y + 1].map(y => dayNum(findSunLon(270, Date.UTC(y, 11, 10), 25)));
+    // 삭 목록
+    const nms = []; let t = A.MakeTime(new Date(Date.UTC(Y - 1, 9, 15)));
+    const endMs = Date.UTC(Y + 2, 1, 15);
+    while (true) { const nm = A.SearchMoonPhase(0, t, 40); if (!nm || nm.date.getTime() > endMs) break; nms.push(dayNum(nm.date.getTime())); t = nm.AddDays(1); }
+    // 중기 목록
+    const zq = []; let zt = Date.UTC(Y - 1, 9, 1);
+    for (let k = 0; k < 30; k++) { const lam0 = mod(Math.ceil(sunLonAt(zt) / 30) * 30, 360); const at = findSunLon(lam0, zt, 35); zq.push({ day: dayNum(at), lon: lam0 }); zt = at + DAY; }
+    const months = [];
+    for (let i = 0; i + 1 < nms.length; i++) {
+      const s = nms[i], e = nms[i + 1];
+      const z = zq.filter(q => q.day >= s && q.day < e);
+      months.push({ start: s, end: e, zq: z.length ? z[0].lon : null, hasSol: sol.some(d => d >= s && d < e) });
+    }
+    // 동지월 사이 구간마다 번호 매기기
+    const solIdx = months.map((m, i) => m.hasSol ? i : -1).filter(i => i >= 0);
+    for (let j = 0; j + 1 < solIdx.length; j++) {
+      const a = solIdx[j], b = solIdx[j + 1];
+      const leapSpan = (b - a) === 13; let leapUsed = false, num = 11;
+      months[a].num = 11; months[a].leap = false;
+      for (let i = a + 1; i < b; i++) {
+        if (leapSpan && months[i].zq === null && !leapUsed) { months[i].num = num; months[i].leap = true; leapUsed = true; }
+        else { num = num % 12 + 1; months[i].num = num; months[i].leap = false; }
+      }
+    }
+    for (const m of months) if (m.num) { const g = new Date(m.start * DAY); m.year = g.getUTCFullYear() - (m.num >= 11 && g.getUTCMonth() <= 1 ? 1 : 0); }
+    return (lunarCache[Y] = months.filter(m => m.num));
+  }
+  // y,mo,d: 양력 날짜 → 음력
+  function toLunar(y, mo, d) {
+    const dn = Math.floor(Date.UTC(y, mo - 1, d) / DAY);
+    for (const Y of [y, y - 1, y + 1]) {
+      const m = lunarMonthsAround(Y).find(x => dn >= x.start && dn < x.end);
+      if (m) return { year: m.year, month: m.num, day: dn - m.start + 1, leap: m.leap, monthDays: m.end - m.start };
+    }
+    return null;
+  }
+
+  // ---------- 자미두수 ----------
+  const NAYIN = '金火木土金火水土金木水土火木水金火木土金火水土金木水土火木水';
+  const NAYIN_EL = { '水': 2, '木': 3, '金': 4, '土': 5, '火': 6 };
+  const JU_NAME = { 2: '수이국', 3: '목삼국', 4: '금사국', 5: '토오국', 6: '화육국' };
+  const PALACE = ['명궁','형제궁','부처궁','자녀궁','재백궁','질액궁','천이궁','노복궁','관록궁','전택궁','복덕궁','부모궁'];
+  const STAR_KO = { 紫微:'자미', 天機:'천기', 太陽:'태양', 武曲:'무곡', 天同:'천동', 廉貞:'염정', 天府:'천부', 太陰:'태음', 貪狼:'탐랑', 巨門:'거문', 天相:'천상', 天梁:'천량', 七殺:'칠살', 破軍:'파군',
+    文昌:'문창', 文曲:'문곡', 左輔:'좌보', 右弼:'우필', 天魁:'천괴', 天鉞:'천월', 祿存:'녹존', 擎羊:'경양', 陀羅:'타라', 火星:'화성', 鈴星:'영성', 地空:'지공', 地劫:'지겁', 天馬:'천마',
+    紅鸞:'홍란', 天喜:'천희', 天哭:'천곡', 天虛:'천허', 孤辰:'고진', 寡宿:'과숙', 龍池:'용지', 鳳閣:'봉각', 華蓋:'화개', 咸池:'함지', 破碎:'파쇄', 天空:'천공', 天刑:'천형', 天姚:'천요',
+    台輔:'태보', 封誥:'봉고', 三台:'삼태', 八座:'팔좌', 恩光:'은광', 天貴:'천귀', 天官:'천관', 天福:'천복', 截空:'절공', 旬空:'순공', 天才:'천재', 天壽:'천수' };
+  // 밝기 (寅부터 丑까지 순서) — 紫微斗數全書 계열 통용표
+  const BR = { 紫微:'왕왕득왕묘묘왕왕득왕평묘', 天機:'득왕리평묘함득왕리평묘함', 太陽:'왕묘왕왕왕득득함불함함불', 武曲:'득리묘평왕묘득리묘평왕묘', 天同:'리평평묘함불왕평평묘왕불', 廉貞:'묘평리함평리묘평리함평리',
+    天府:'묘득묘득왕묘득왕묘득묘묘', 太陰:'왕함함함불불리불왕묘묘묘', 貪狼:'평리묘함왕묘평리묘함왕묘', 巨門:'묘묘함왕왕불묘묘함왕왕불', 天相:'묘함득득묘득묘함득득묘묘', 天梁:'묘묘묘함묘왕함득묘함묘왕',
+    七殺:'묘왕묘평왕묘묘묘묘평왕묘', 破軍:'득함왕평묘왕득함왕평묘왕', 文昌:'함리득묘함리득묘함리득묘', 文曲:'평왕득묘함왕득묘함왕득묘',
+    擎羊:'.함묘.함묘.함묘.함묘', 陀羅:'함.묘함.묘함.묘함.묘', 火星:'묘리함득묘리함득묘리함득', 鈴星:'묘리함득묘리함득묘리함득' };
+  const brightness = (name, b) => { const t = BR[name]; if (!t) return null; const c = t[mod(b - 2, 12)]; return c === '.' ? null : c; };
+  const CS12 = ['장생','목욕','관대','임관','제왕','쇠','병','사','묘','절','태','양'];
+  const CS_START = { 2: 8, 3: 11, 4: 5, 5: 8, 6: 2 };
+  const SIHUA = { 0:['廉貞','破軍','武曲','太陽'], 1:['天機','天梁','紫微','太陰'], 2:['天同','天機','文昌','廉貞'], 3:['太陰','天同','天機','巨門'], 4:['貪狼','太陰','右弼','天機'],
+    5:['武曲','貪狼','天梁','文曲'], 6:['太陽','武曲','太陰','天同'], 7:['巨門','太陽','文曲','文昌'], 8:['天梁','紫微','左輔','武曲'], 9:['破軍','巨門','太陰','貪狼'] };
+  const HUA = ['화록','화권','화과','화기'];
+  const KUI_YUE = { 0:[1,7], 4:[1,7], 6:[1,7], 1:[0,8], 5:[0,8], 2:[11,9], 3:[11,9], 7:[6,2], 8:[3,5], 9:[3,5] };
+  const LUCUN = [2,3,5,6,5,6,8,9,11,0];
+
+  // lunar: {year, month, day, leap}, hb: 시지 index, gender 'M'|'F'
+  function ziwei(lunar, hb, gender) {
+    const yS = mod(lunar.year - 4, 10), yB = mod(lunar.year - 4, 12);
+    let m = lunar.month;
+    if (lunar.leap && lunar.day > 15) m = m % 12 + 1; // 윤달 후반은 다음 달로
+    const ming = mod(2 + (m - 1) - hb, 12);
+    const shen = mod(2 + (m - 1) + hb, 12);
+    const yinStem = mod((yS % 5) * 2 + 2, 10);
+    const stemOf = b => mod(yinStem + mod(b - 2, 12), 10);
+    const mingGz = gzIndex(stemOf(ming), ming);
+    const ju = NAYIN_EL[NAYIN[Math.floor(mingGz / 2)]];
+    // 자미성
+    const d = lunar.day; let k = 0; while ((d + k) % ju) k++;
+    const q = (d + k) / ju;
+    let Z = mod(2 + q - 1 + (k % 2 ? -k : k), 12);
+    const F = mod(4 - Z, 12);
+    const stars = {};
+    const put = (name, b, kind) => { (stars[mod(b, 12)] ||= []).push({ name, kind }); };
+    put('紫微', Z, 'major'); put('天機', Z - 1, 'major'); put('太陽', Z - 3, 'major'); put('武曲', Z - 4, 'major'); put('天同', Z - 5, 'major'); put('廉貞', Z - 8, 'major');
+    put('天府', F, 'major'); put('太陰', F + 1, 'major'); put('貪狼', F + 2, 'major'); put('巨門', F + 3, 'major'); put('天相', F + 4, 'major'); put('天梁', F + 5, 'major'); put('七殺', F + 6, 'major'); put('破軍', F + 10, 'major');
+    put('文昌', 10 - hb, 'good'); put('文曲', 4 + hb, 'good'); put('左輔', 4 + (m - 1), 'good'); put('右弼', 10 - (m - 1), 'good');
+    put('天魁', KUI_YUE[yS][0], 'good'); put('天鉞', KUI_YUE[yS][1], 'good');
+    const lc = LUCUN[yS]; put('祿存', lc, 'good'); put('擎羊', lc + 1, 'bad'); put('陀羅', lc - 1, 'bad');
+    const grp = yB % 4; // 申子辰=0, 巳酉丑=1, 寅午戌=2, 亥卯未=3
+    const fireStart = [2, 3, 1, 9][grp], bellStart = [10, 10, 3, 10][grp];
+    put('火星', fireStart + hb, 'bad'); put('鈴星', bellStart + hb, 'bad');
+    put('地空', 11 - hb, 'bad'); put('地劫', 11 + hb, 'bad');
+    put('天馬', [2, 11, 8, 5][grp], 'good');
+    // 잡성 (minor): kind 'mg' 길, 'mn' 중성, 'mb' 흉
+    const d1 = lunar.day - 1;
+    put('三台', 4 + (m - 1) + d1, 'mg'); put('八座', 10 - (m - 1) - d1, 'mg');
+    put('恩光', 10 - hb + lunar.day - 2, 'mg'); put('天貴', 4 + hb + lunar.day - 2, 'mg');
+    put('台輔', 6 + hb, 'mg'); put('封誥', 2 + hb, 'mg');
+    put('天官', [7,4,5,2,3,9,11,9,10,6][yS], 'mg'); put('天福', [9,8,0,11,3,2,6,5,6,5][yS], 'mg');
+    put('紅鸞', 3 - yB, 'mg'); put('天喜', 9 - yB, 'mg');
+    put('龍池', 4 + yB, 'mg'); put('鳳閣', 10 - yB, 'mg');
+    put('天才', ming + yB, 'mg'); put('天壽', shen + yB, 'mg');
+    put('華蓋', [4, 1, 10, 7][grp], 'mn'); put('咸池', [9, 6, 3, 0][grp], 'mn'); put('天姚', 1 + (m - 1), 'mn');
+    put('天刑', 9 + (m - 1), 'mb'); put('天哭', 6 - yB, 'mb'); put('天虛', 6 + yB, 'mb');
+    const season = Math.floor(mod(yB - 2, 12) / 3);
+    put('孤辰', [5, 8, 11, 2][season], 'mb'); put('寡宿', [1, 4, 7, 10][season], 'mb');
+    put('破碎', [5, 1, 9][yB % 3], 'mb'); put('天空', yB + 1, 'mb');
+    const jie = 8 - 2 * (yS % 5); put('截空', jie, 'mb'); put('截空', jie + 1, 'mb');
+    const xunY = Math.floor(gzIndex(yS, yB) / 10); put('旬空', 10 - 2 * xunY, 'mb'); put('旬空', 11 - 2 * xunY, 'mb');    // 생년사화
+    const hua = {};
+    SIHUA[yS].forEach((s, i) => { hua[s] = HUA[i]; });
+    // 궁
+    const yangYear = yS % 2 === 0;
+    const forward = (yangYear && gender === 'M') || (!yangYear && gender === 'F');
+    const palaces = [];
+    for (let b = 0; b < 12; b++) {
+      const pi = mod(ming - b, 12);
+      const step = forward ? mod(b - ming, 12) : mod(ming - b, 12);
+      const csStep = forward ? mod(b - CS_START[ju], 12) : mod(CS_START[ju] - b, 12);
+      palaces[b] = { branch: b, stem: stemOf(b), name: PALACE[pi], isShen: b === shen, cs: CS12[csStep], stars: (stars[b] || []).map(s => ({ ...s, hua: hua[s.name] || null, br: brightness(s.name, b) })),
+        daxian: [ju + step * 10, ju + step * 10 + 9] };
+    }
+    return { yearStem: yS, yearBranch: yB, ming, shen, ju, juName: JU_NAME[ju], ziweiPos: Z, palaces, forward, effMonth: m };
+  }
+
+  const api = { saju, yearPillar, solarYear, toLunar, ziwei, tenGod, GAN, GAN_KO, ZHI, ZHI_KO, ZHI_ANIMAL, EL, EL_HAN, GAN_EL, ZHI_EL, HIDDEN, STAR_KO, PALACE, ganzhi, mod };
+  if (typeof module !== 'undefined') module.exports = api; else root.EastCalc = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+const V = window.VedicCalc, E = window.EastCalc;
+const CITIES = [
+  ['서울', 37.5665, 126.978], ['부산', 35.1796, 129.0756], ['인천', 37.4563, 126.7052], ['대구', 35.8714, 128.6014],
+  ['대전', 36.3504, 127.3845], ['광주', 35.1595, 126.8526], ['울산', 35.5384, 129.3114], ['세종', 36.48, 127.289],
+  ['수원', 37.2636, 127.0286], ['성남', 37.42, 127.1267], ['고양', 37.6584, 126.832], ['용인', 37.2361, 127.2011],
+  ['청주', 36.6424, 127.489], ['천안', 36.8151, 127.1139], ['전주', 35.8242, 127.148], ['포항', 36.019, 129.3435],
+  ['창원', 35.2281, 128.6811], ['진주', 35.18, 128.1076], ['원주', 37.3422, 127.9202], ['춘천', 37.8813, 127.7298],
+  ['강릉', 37.7519, 128.8761], ['목포', 34.8118, 126.3922], ['여수', 34.7604, 127.6622], ['안동', 36.5684, 128.7294],
+  ['경주', 35.8562, 129.2247], ['제주', 33.4996, 126.5312], ['서귀포', 33.2541, 126.5601], ['직접 입력 (위도·경도)', null, null]
+];
+const ABBR = { Asc: '라그나', Sun: '태양', Moon: '달', Mars: '화성', Mercury: '수성', Jupiter: '목성', Venus: '금성', Saturn: '토성', Rahu: '라후', Ketu: '케투' };
+const LORD_KO = { Ketu: '케투', Venus: '금성', Sun: '태양', Moon: '달', Mars: '화성', Rahu: '라후', Jupiter: '목성', Saturn: '토성', Mercury: '수성' };
+const ORDER = ['Asc', 'Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'];
+const SIGN_SHORT = ['양', '황소', '쌍둥이', '게', '사자', '처녀', '천칭', '전갈', '사수', '염소', '물병', '물고기'];
+const SIGN_GLYPH = ['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'].map(g => g + '︎');
+const SI_POS = { 11: [0, 0], 0: [0, 1], 1: [0, 2], 2: [0, 3], 10: [1, 0], 3: [1, 3], 9: [2, 0], 4: [2, 3], 8: [3, 0], 7: [3, 1], 6: [3, 2], 5: [3, 3] };
+// 자미두수 명반 고정 위치 (巳午未申 / 辰 酉 / 卯 戌 / 寅丑子亥)
+const ZW_POS = { 5: [0, 0], 6: [0, 1], 7: [0, 2], 8: [0, 3], 4: [1, 0], 9: [1, 3], 3: [2, 0], 10: [2, 3], 2: [3, 0], 1: [3, 1], 0: [3, 2], 11: [3, 3] };
+const PALACE_SIMPLE = { 명궁: '나 자신·타고난 성향', 형제궁: '형제·가까운 동료', 부처궁: '배우자·연애', 자녀궁: '자녀·아랫사람', 재백궁: '돈 버는 방식', 질액궁: '몸과 체질', 천이궁: '바깥 활동·이동', 노복궁: '친구·인맥', 관록궁: '일·직업', 전택궁: '집·부동산', 복덕궁: '마음의 여유·취향', 부모궁: '부모·윗사람' };
+const GOD_SIMPLE = { 비견: '나와 같은 힘(독립심)', 겁재: '경쟁하는 힘', 식신: '표현·먹고사는 재주', 상관: '재능·말솜씨·반항', 편재: '큰돈·사업 감각', 정재: '꾸준한 돈·성실', 편관: '압박·도전·권위', 정관: '규칙·명예·직장', 편인: '독특한 학문·직관', 정인: '배움·보살핌', 일간: '나 자신' };
+const EL_SIMPLE = ['나무(성장·기획)', '불(표현·열정)', '흙(안정·중재)', '쇠(결단·원칙)', '물(지혜·유연함)'];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let mode = 'expert';
+try { mode = localStorage.getItem('gaon3-mode') || 'expert'; } catch (e) {}
+const HOUSE_AREA = ['나 자신·성격·몸', '돈·가족·말', '형제·용기·소통', '집·어머니·마음의 안정', '연애·자녀·창의성', '일상 업무·건강 관리·경쟁', '배우자·동업자', '큰 변화·숨은 일·공동 재산', '행운·스승·신념·여행', '직업·사회적 위치', '수입·인맥·소망', '휴식·해외·지출·영성'];
+const PL_SIMPLE = { Asc: '상승궁(나를 나타내는 자리)', Sun: '태양', Moon: '달', Mars: '화성', Mercury: '수성', Jupiter: '목성', Venus: '금성', Saturn: '토성', Rahu: '라후(용의 머리)', Ketu: '케투(용의 꼬리)' };
+let lastRender = null, S = null; // S = current computed state
+
+function setMode(m) {
+  mode = m; try { localStorage.setItem('gaon3-mode', m); } catch (e) {}
+  document.body.classList.toggle('simple', m === 'simple');
+  $('mSimple').setAttribute('aria-pressed', m === 'simple'); $('mExpert').setAttribute('aria-pressed', m === 'expert');
+  if (lastRender) render();
+}
+// tabs
+const TABS = ['vedic', 'saju', 'ziwei'];
+function setTab(t) {
+  TABS.forEach(x => { $('t-' + x).setAttribute('aria-selected', x === t); $('p-' + x).hidden = x !== t; });
+  if (t === 'ziwei' && typeof drawZLines === 'function') requestAnimationFrame(drawZLines);
+  try { localStorage.setItem('gaon3-tab', t); } catch (e) {}
+}
+TABS.forEach(x => $('t-' + x).addEventListener('click', () => setTab(x)));
+try { const t = localStorage.getItem('gaon3-tab'); if (TABS.includes(t)) setTab(t); } catch (e) {}
+
+const sel = $('city');
+CITIES.forEach((c, i) => { const o = document.createElement('option'); o.value = i; o.textContent = c[0]; sel.appendChild(o); });
+sel.addEventListener('change', () => { const custom = CITIES[sel.value][1] === null; $('latL').hidden = !custom; $('lonL').hidden = !custom; });
+
+const dms = d => { const deg = Math.floor(d); const m = Math.floor((d - deg) * 60); return `${deg}°${String(m).padStart(2, '0')}′`; };
+const ymd = d => `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+const hhmm = ms => { const d = new Date(ms); return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`; };
+
+function seoulOffsetMin(utcMs) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Seoul', hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' })
+    .formatToParts(new Date(utcMs)).map(x => [x.type, x.value]));
+  const asUTC = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+  return Math.round((asUTC - Math.floor(utcMs / 60000) * 60000) / 60000);
+}
+function seoulToUTC(y, mo, d, h, mi) {
+  const wall = Date.UTC(y, mo - 1, d, h, mi);
+  let utc = wall - 9 * 3600000;
+  for (let i = 0; i < 3; i++) utc = wall - seoulOffsetMin(utc) * 60000;
+  return { date: new Date(utc), offset: seoulOffsetMin(utc) };
+}
+const fmtOff = m => `UTC+${Math.floor(m / 60)}${m % 60 ? ':' + String(m % 60).padStart(2, '0') : ''}`;
+const gzHan = p => E.GAN[p.s] + E.ZHI[p.b];
+const gzKo = p => E.GAN_KO[p.s] + E.ZHI_KO[p.b];
+
+function drawSI(box, signOf, degOf, lagnaSign, centerHTML, ch) {
+  box.innerHTML = '';
+  const bySign = {}; ORDER.forEach(p => { (bySign[signOf(p)] ||= []).push(p); });
+  for (let s = 0; s < 12; s++) {
+    const [r, col] = SI_POS[s];
+    const el = document.createElement('div');
+    el.className = 'cell' + (s === lagnaSign ? ' lagna' : '');
+    el.style.gridRow = r + 1; el.style.gridColumn = col + 1;
+    const hn = ((s - lagnaSign + 12) % 12) + 1;
+    el.innerHTML = `<span class="hn" title="${hn}하우스" aria-label="${hn}하우스">${hn}</span><span class="sn" title="${SIGN_SHORT[s]}자리" aria-label="${SIGN_SHORT[s]}자리">${SIGN_GLYPH[s]}</span>` + (bySign[s] || []).map(p =>
+      `<span class="pl">${ABBR[p]}${ch.rows[p].retro ? '<span class="R">R</span>' : ''} <small>${Math.floor(degOf(p))}°</small></span>`).join('');
+    box.appendChild(el);
+  }
+  const ctr = document.createElement('div'); ctr.className = 'center'; ctr.innerHTML = centerHTML; box.appendChild(ctr);
+}
+
+function render() {
+  $('msg').textContent = '';
+  const [y, mo, d] = $('dt').value.split('-').map(Number);
+  const [h, mi] = $('tm').value.split(':').map(Number);
+  if (!y || isNaN(h)) { $('msg').textContent = '생년월일과 태어난 시각을 모두 입력해 주세요.'; return; }
+  const c = CITIES[sel.value];
+  const lat = c[1] ?? parseFloat($('lat').value), lon = c[2] ?? parseFloat($('lon').value);
+  if (isNaN(lat) || isNaN(lon)) { $('msg').textContent = '위도와 경도를 숫자로 입력해 주세요.'; return; }
+  const { date, offset } = seoulToUTC(y, mo, d, h, mi);
+  const ch = V.chart(date, lat, lon);
+  const name = $('nm').value.trim() || '이름 없음';
+  const gender = $('gender').value;
+  const tcorr = $('tcorr').value, ziMode = $('zi').value;
+
+  // 사주·자미 기준 현지 시각
+  const stdOff = offset >= 600 ? 540 : (offset === 570 ? 510 : offset);
+  const localMs = date.getTime() + (tcorr === 'lmt' ? lon * 4 * 60000 : stdOff * 60000);
+  const sj = E.saju(date.getTime(), localMs, gender, { ziMode });
+  applyDaeMode(sj, y, mo, d, $('daeMode').value);
+  const lt = new Date(localMs);
+  const hm = lt.getUTCHours() * 60 + lt.getUTCMinutes();
+  const lunarBase = new Date(localMs + (hm >= 1380 && ziMode === 'day23' ? 86400000 : 0));
+  const lunar = E.toLunar(lunarBase.getUTCFullYear(), lunarBase.getUTCMonth() + 1, lunarBase.getUTCDate());
+  const zw = lunar ? E.ziwei(lunar, sj.pillars.hour.b, gender) : null;
+  zSel = zw ? zw.ming : null;
+
+  const tzNote = offset === 540 ? '' : (offset === 510 ? ' · 당시 표준시 UTC+8:30 적용' : ' · 서머타임 적용');
+  const corrMin = Math.round((localMs - date.getTime()) / 60000 - offset);
+  $('meta').innerHTML = (name === '예시 차트' ? '<span class="example">예시 데이터</span>' : '') +
+    `<span><b>${esc(name)}</b> · ${gender === 'F' ? '여' : '남'}</span><span>${y}.${mo}.${d} ${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')} (${fmtOff(offset)}${tzNote})</span>` +
+    (lunar ? `<span>음력 ${lunar.year}.${lunar.month}.${lunar.day}${lunar.leap ? ' (윤달)' : ''}</span>` : '') +
+    `<span>사주 기준 ${hhmm(localMs)}${corrMin ? ` (${corrMin > 0 ? '+' : '−'}${Math.abs(corrMin)}분)` : ''}</span>` +
+    `<span>${c[0].startsWith('직접') ? '' : c[0] + ' · '}${lat.toFixed(2)}N ${lon.toFixed(2)}E</span><span class="xp">적도 아야남샤 ${dms(ch.eqAyanamsa)}</span>`;
+
+  natal = { lat, lon, lagnaSign: ch.lagnaSign, moonSign: ch.rows.Moon.sign };
+  S = { ch, sj, zw, lunar, name, gender, birthUTC: date.getTime(), localMs };
+  renderVedic(ch, name);
+  renderSaju(sj);
+  renderZiwei(zw, lunar, name, gender);
+  renderTrio();
+  const metaLine = S.metaLine = `${name} (${gender === 'F' ? '여' : '남'}), 양력 ${y}.${mo}.${d} ${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')} (${fmtOff(offset)}), ${c[0]}`;
+  texts = { V: buildChartText(ch, metaLine), S: sajuText(sj), Z: zw ? ziweiText(zw, lunar) : '' };
+  const key = JSON.stringify([metaLine, tcorr, ziMode, $('daeMode').value]);
+  if (!lastRender || lastRender !== key) resetChat(name);
+  lastRender = key;
+}
+
+function renderVedic(ch, name) {
+  const S0 = mode === 'simple';
+  drawSI($('si'), p => ch.rows[p].sign, p => ch.rows[p].deg, ch.lagnaSign,
+    `<div class="nm">${esc(name)}</div><span>라그나 ${V.RASI_KO[ch.lagnaSign].split('(')[0]}</span><span>달 낙샤트라 ${ch.rows.Moon.nak.name}</span>`, ch);
+  const d9Lagna = ch.rows.Asc.d9sign;
+  drawSI($('d9'), p => ch.rows[p].d9sign, p => ch.rows[p].d9deg, d9Lagna,
+    `<div class="nm">D9</div><span>나밤샤 라그나 ${V.RASI_KO[d9Lagna].split('(')[0]}</span>`, ch);
+  const vargo = ORDER.filter(p => ch.rows[p].sign === ch.rows[p].d9sign);
+  $('d9H').textContent = S0 ? '결혼·내면의 차트 (나밤샤)' : '나밤샤 (D9)';
+  $('d9info').innerHTML = S0
+    ? `<p>나밤샤는 출생 차트의 각 자리를 아홉으로 나눠 본 차트예요. 배우자와 결혼 생활, 그리고 나이 들수록 드러나는 내면의 힘을 볼 때 함께 봐요.</p>` +
+      (vargo.length ? `<p><b>두 차트에서 같은 별자리에 있는 행성:</b> ${vargo.map(p => PL_SIMPLE[p]).join(', ')}. 이런 행성은 힘이 안정적이고 그 성질이 뚜렷하게 드러나요.</p>` : '')
+    : `<table><thead><tr><th>행성</th><th>D9 라시</th><th>도수</th><th>D9 하우스</th></tr></thead><tbody>` +
+      ORDER.map(p => { const r = ch.rows[p]; return `<tr><td>${V.PL_KO[p]}${r.sign === r.d9sign ? '<span class="R">VG</span>' : ''}</td><td>${V.RASI_KO[r.d9sign]}</td><td class="mono">${dms(r.d9deg)}</td><td class="mono">${((r.d9sign - d9Lagna + 12) % 12) + 1}</td></tr>`; }).join('') +
+      `</tbody></table><p class="area" style="padding:8px 10px 10px;margin:0">VG = 바르곳타마(D1과 D9의 라시가 같음)</p>`;
+  $('th').innerHTML = S0 ? '<tr><th>행성</th><th>별자리</th><th>삶의 영역</th><th>탄생 별(낙샤트라)</th></tr>'
+    : '<tr><th>행성</th><th>라시</th><th>도수</th><th>하우스</th><th>낙샤트라 · 파다</th><th>로드</th></tr>';
+  $('tb').innerHTML = ORDER.map(p => { const r = ch.rows[p];
+    if (S0) return `<tr><td>${PL_SIMPLE[p]}${r.retro ? '<span class="R">역행</span>' : ''}</td><td>${V.RASI_KO[r.sign].split('(')[0]}</td><td>${r.house}번째 <span class="area">${HOUSE_AREA[r.house - 1]}</span></td><td>${r.nak.name}</td></tr>`;
+    return `<tr><td>${V.PL_KO[p]}${r.retro ? '<span class="R">R</span>' : ''}</td><td>${V.RASI_KO[r.sign]}</td><td class="mono">${dms(r.deg)}</td><td class="mono">${r.house}</td><td>${r.nak.name} · ${r.nak.pada}</td><td>${LORD_KO[r.nak.lord]}</td></tr>`; }).join('');
+  const now = new Date();
+  const md = ch.dasha.list.find(x => x.start <= now && now < x.end);
+  const ad = md && md.subs.find(x => x.start <= now && now < x.end);
+  $('dashaH').textContent = S0 ? '인생의 시기 흐름' : '빔쇼타리 다샤';
+  if (!md) $('now').innerHTML = `<strong>현재 다샤가 계산 범위(120년) 밖이에요.</strong>`;
+  else $('now').innerHTML = S0
+    ? `<strong>지금은 ${LORD_KO[md.lord]}의 큰 시기, 그 안의 ${LORD_KO[ad.lord]} 작은 시기예요</strong><p>큰 시기 ${ymd(md.start)} – ${ymd(md.end)}, 작은 시기 ${ymd(ad.start)} – ${ymd(ad.end)}. 사주의 대운처럼, 각 행성이 몇 년씩 돌아가며 삶의 흐름을 이끌어요.</p>`
+    : `<strong>${LORD_KO[md.lord]} 마하다샤 · ${LORD_KO[ad.lord]} 안타르다샤</strong><p>마하다샤 ${ymd(md.start)} – ${ymd(md.end)}, 안타르다샤 ${ymd(ad.start)} – ${ymd(ad.end)}. 출생 시 남은 첫 다샤 ${ch.dasha.balanceYears.toFixed(2)}년.</p>`;
+  $('dasha').innerHTML = ch.dasha.list.map(m => {
+    const cur = m === md;
+    return `<details${cur ? ' class="cur" open' : ''}><summary><b>${LORD_KO[m.lord]} ${S0 ? '시기' : '마하다샤'}</b><span class="d">${ymd(m.start)} – ${ymd(m.end)}</span></summary><div class="subs">` +
+      m.subs.map(s => `<div${s === ad ? ' class="cur"' : ''}><span>${LORD_KO[m.lord]}–${LORD_KO[s.lord]}</span><span class="d">${ymd(s.start)}</span></div>`).join('') + '</div></details>';
+  }).join('');
+}
+
+// ---------- 사주 ----------
+const PILLAR_KEYS = ['hour', 'day', 'month', 'year'];
+const PILLAR_KO = { hour: '시주', day: '일주', month: '월주', year: '연주' };
+const DAE_MODE_KO = { exact: '정밀 계산(절입까지 일수÷3, 출생 시각부터)', korean: '대운수를 세는 나이로 적용(해 단위)', intl: '대운수를 만 나이로 적용(생일 기준)' };
+function applyDaeMode(sj, y, mo, d, mode) {
+  const at = age => mode === 'korean' ? new Date(y + age - 1, 0, 1) : new Date(y + age, mo - 1, d);
+  sj.dae.forEach(x => { if (mode === 'exact') { x.ds = x.start; x.de = x.end; } else { x.ds = at(x.age); x.de = at(x.age + 10); } });
+  sj.daeMode = mode;
+}
+function ymLabel(years) { const Y = Math.floor(years), M = Math.floor((years - Y) * 12 + 1e-9); return `${Y}년 ${M}개월`; }
+function dhLabel(days) { const D = Math.floor(days), H = Math.floor((days - D) * 24); return `${D}일 ${H}시간`; }
+function curDaeun(sj, now = new Date()) { return sj.dae.find(x => x.ds <= now && now < x.de) || null; }
+function seun(now = new Date()) { const Y = E.solarYear(now.getTime()); return { Y, p: E.yearPillar(Y) }; }
+
+function renderSaju(sj) {
+  const simple = mode === 'simple';
+  const P = sj.pillars, I = sj.info;
+  const cells = [];
+  cells.push('<div class="rh"></div>', ...PILLAR_KEYS.map(k => `<div class="colh${k === 'day' ? ' me' : ''}">${PILLAR_KO[k]}${k === 'day' ? ' (나)' : ''}</div>`));
+  const godTxt = g => simple ? `<span class="god" title="${GOD_SIMPLE[g] || ''}">${g}</span><span class="area" style="font-size:11px">${(GOD_SIMPLE[g] || '').split('(')[0]}</span>` : `<span class="god">${g}</span>`;
+  cells.push('<div class="rh">십성</div>', ...PILLAR_KEYS.map(k => `<div style="display:grid;gap:0">${godTxt(I[k].stemGod)}</div>`));
+  cells.push('<div class="rh">천간</div>', ...PILLAR_KEYS.map(k => `<div class="ch e${E.GAN_EL[P[k].s]}">${E.GAN[P[k].s]}<small>${E.GAN_KO[P[k].s]}${E.EL[E.GAN_EL[P[k].s]]}</small></div>`));
+  cells.push('<div class="rh">지지</div>', ...PILLAR_KEYS.map(k => `<div class="ch e${E.ZHI_EL[P[k].b]}">${E.ZHI[P[k].b]}<small>${E.ZHI_KO[P[k].b]}${E.EL[E.ZHI_EL[P[k].b]]}</small></div>`));
+  cells.push('<div class="rh">십성</div>', ...PILLAR_KEYS.map(k => `<div style="display:grid;gap:0">${godTxt(I[k].branchGod)}</div>`));
+  cells.push('<div class="rh xp">지장간</div>', ...PILLAR_KEYS.map(k => `<div class="hid xp">${I[k].hidden.map(s => E.GAN[s]).join('')}</div>`));
+  cells.push('<div class="rh xp last">12운성</div>', ...PILLAR_KEYS.map(k => `<div class="xp last">${I[k].stage}</div>`));
+  $('pillars').innerHTML = cells.join('');
+  if (simple) $('pillars').querySelectorAll('div').forEach((el, i, all) => { if (i >= all.length - 15 && i < all.length - 10) el.classList.add('last'); });
+
+  const max = Math.max(...sj.count, 1);
+  $('elbar').innerHTML = sj.count.map((n, e) => `<div class="elrow"><span>${E.EL_HAN[e]} ${simple ? EL_SIMPLE[e].split('(')[0] : E.EL[e]}</span><div class="track"><div class="fill e${e}" style="width:${n / 8 * 100}%"></div></div><b>${n}</b></div>`).join('') +
+    `<p class="area" style="margin:2px 0 0">천간 4 + 지지 4 (지지는 본기 기준)</p>`;
+
+  const dayStem = P.day.s;
+  $('sajuExtra').innerHTML = `<span>일간 <b>${E.GAN[dayStem]}${E.EL_HAN[E.GAN_EL[dayStem]]}</b></span><span>공망 <b>${sj.kong.map(b => E.ZHI[b]).join('')}</b></span><span>대운 <b>${sj.forward ? '순행' : '역행'} · 대운수 ${sj.daeNum}</b> <span class="area">(${sj.startYears.toFixed(2)}년)</span></span>`;
+  $('sajuNote').textContent = `절입: ${ymd(sj.jiePrev)} ${sj.jiePrev.toTimeString().slice(0, 5)} → ${ymd(sj.jieNext)} ${sj.jieNext.toTimeString().slice(0, 5)} (기기 시간대 기준)`;
+  const weak = sj.count.map((n, e) => n === 0 ? e : -1).filter(e => e >= 0);
+  const strong = sj.count.indexOf(Math.max(...sj.count));
+  $('sajuSimple').innerHTML = `<p><b>나를 나타내는 글자는 ${E.GAN[dayStem]}(${E.GAN_KO[dayStem]}${E.EL[E.GAN_EL[dayStem]]})예요.</b> 태어난 날의 위 글자로, ${EL_SIMPLE[E.GAN_EL[dayStem]]}의 기운을 타고났다고 봐요.</p>` +
+    `<p>여덟 글자 중 ${EL_SIMPLE[strong].split('(')[0]} 기운이 가장 많아요${weak.length ? `. ${weak.map(e => EL_SIMPLE[e].split('(')[0]).join('·')} 기운은 원국에 없어서, 대운이나 생활 습관으로 채워 주면 좋다고 봐요` : ''}.</p>` +
+    `<p>십성은 다른 글자가 나에게 어떤 의미인지를 열 가지로 나눈 거예요. 표의 각 글자 위아래에 적혀 있어요.</p>`;
+
+  const now = new Date(); const cur = curDaeun(sj, now); const se = seun(now);
+  $('daeunH').textContent = simple ? '10년 단위 큰 흐름 (대운)' : '대운';
+  $('daeun').innerHTML = sj.dae.map(x => `<div${x === cur ? ' class="cur"' : ''}><span class="age">${x.age}세</span><span class="gz"><span class="e${E.GAN_EL[x.s]}">${E.GAN[x.s]}</span><span class="e${E.ZHI_EL[x.b]}">${E.ZHI[x.b]}</span></span><span class="g">${x.stemGod}·${x.branchGod}</span><span class="yr">${sj.daeMode === 'korean' ? x.ds.getFullYear() : ymd(x.ds).slice(0, 7)}</span></div>`).join('');
+  const seGod = E.tenGod(dayStem, se.p.s);
+  $('daeunNow').innerHTML = cur
+    ? (simple ? `<strong>지금은 ${gzKo(cur)}(${gzHan(cur)}) 대운이에요</strong><p>${ymd(cur.ds)}부터 10년. ${cur.stemGod}·${cur.branchGod}의 기운이 흐르는 시기예요. 올해 ${se.Y}년은 ${gzKo(se.p)}년이에요.</p>`
+      : `<strong>${gzHan(cur)} 대운 (${cur.stemGod} / ${cur.branchGod}) · ${se.Y} ${gzHan(se.p)} 세운 (${seGod})</strong><p>대운 ${ymd(cur.ds)} – ${ymd(cur.de)}. 세운은 입춘 기준.</p>`)
+    : `<strong>대운 시작 전이에요</strong><p>첫 대운은 ${ymd(sj.dae[0].ds)}부터.</p>`;
+  $('daeunNow').innerHTML += `<p class="xp">${sj.forward ? '순행' : '역행'} · ${sj.forward ? '다음' : '이전'} 절 ${sj.refJie.name} ${ymd(sj.refJie.at)} ${String(sj.refJie.at.getHours()).padStart(2, '0')}:${String(sj.refJie.at.getMinutes()).padStart(2, '0')}${sj.forward ? '까지' : '부터'} ${dhLabel(sj.diffDays)} → ÷3 = ${ymLabel(sj.startYears)} → <b>대운수 ${sj.daeNum}</b> · 시점: ${DAE_MODE_KO[sj.daeMode]}</p>`;
+}
+
+function sajuText(sj) {
+  const P = sj.pillars, I = sj.info, now = new Date(), cur = curDaeun(sj, now), se = seun(now);
+  const L = ['[사주 원국] (절기·입춘 기준, ' + ($('tcorr').value === 'lmt' ? '경도 보정 지방평균시' : '표준시') + ', 자시: ' + ($('zi').value === 'split' ? '야자시' : '23시 날짜 변경') + ')'];
+  for (const k of ['year', 'month', 'day', 'hour'])
+    L.push(`- ${PILLAR_KO[k]}: ${gzHan(P[k])}(${gzKo(P[k])}) 천간 ${I[k].stemGod} / 지지 ${I[k].branchGod}, 지장간 ${I[k].hidden.map(s => E.GAN[s]).join('')}, 12운성 ${I[k].stage}`);
+  L.push(`일간: ${E.GAN[P.day.s]}${E.EL_HAN[E.GAN_EL[P.day.s]]}. 오행 개수(천간+지지 본기): ` + sj.count.map((n, e) => `${E.EL[e]} ${n}`).join(', ') + `. 공망 ${sj.kong.map(b => E.ZHI[b]).join('')}`);
+  L.push(`대운: ${sj.forward ? '순행' : '역행'}, ${sj.refJie.name}까지 ${dhLabel(sj.diffDays)} → ${ymLabel(sj.startYears)} → 대운수 ${sj.daeNum}. 시점 기준: ${DAE_MODE_KO[sj.daeMode]}`);
+  L.push('대운 목록: ' + sj.dae.map(x => `${x.age}세 ${gzHan(x)}(${x.stemGod}/${x.branchGod}, ${ymd(x.ds).slice(0, 7)}~)${x === cur ? '[현재]' : ''}`).join(', '));
+  const yrs = [0, 1, 2].map(k => { const p = E.yearPillar(se.Y + k); return `${se.Y + k} ${gzHan(p)}(${E.tenGod(P.day.s, p.s)}/${E.tenGod(P.day.s, E.HIDDEN[p.b][E.HIDDEN[p.b].length - 1])})`; });
+  L.push('세운: ' + yrs.join(', '));
+  return L.join('\n');
+}
+
+// ---------- 자미두수 ----------
+function lunarAgeNow(lunar) { const t = new Date(); const l = E.toLunar(t.getFullYear(), t.getMonth() + 1, t.getDate()); return { age: l.year - lunar.year + 1, ly: l.year }; }
+let zSel = null; // 기준 궁 지지
+function zRel(b) { if (zSel === null) return ''; if (b === zSel) return 'sel'; if (b === (zSel + 4) % 12 || b === (zSel + 8) % 12) return 'sf'; if (b === (zSel + 6) % 12) return 'dg'; return ''; }
+function renderZiwei(zw, lunar, name, gender) {
+  if (zw && zSel === null) zSel = zw.ming;
+  const box = $('zw'); box.innerHTML = ''; box.classList.toggle('nozap', !$('showZap').checked);
+  const showBr = $('showBr').checked;
+  if (!zw) { box.innerHTML = '<div class="zcenter">음력 변환에 실패했어요.</div>'; return; }
+  const simple = mode === 'simple';
+  const { age, ly } = lunarAgeNow(lunar);
+  const yearBranch = E.mod(ly - 4, 12);
+  for (const p of zw.palaces) {
+    const [r, c] = ZW_POS[p.branch];
+    const el = document.createElement('div');
+    const inDx = age >= p.daxian[0] && age <= p.daxian[1];
+    const rel = zRel(p.branch);
+    el.className = 'zc' + (p.branch === zw.ming ? ' ming' : '') + (inDx ? ' dx' : '') + (rel ? ' ' + rel : '');
+    el.tabIndex = 0; el.dataset.b = p.branch; el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', `${p.name} ${E.ZHI[p.branch]}, 삼방사정 기준으로 보기`);
+    el.style.gridRow = r + 1; el.style.gridColumn = c + 1;
+    const major = p.stars.filter(s => s.kind === 'major'), minor = p.stars.filter(s => s.kind === 'good' || s.kind === 'bad'), zap = p.stars.filter(s => s.kind[0] === 'm' && s.kind !== 'major');
+    const huaTag = s => s.hua ? `<span class="hua${s.hua === '화기' ? ' ji' : ''}" title="${s.hua}">${s.hua[1]}</span>` : '';
+    const brTag = s => s.br && showBr ? `<span class="br b-${s.br}" title="밝기 ${s.br}">${s.br}</span>` : '';
+    const nm = s => (simple ? E.STAR_KO[s.name] : `${s.name}`) + brTag(s) + (simple ? '' : `<span class="area" style="font-size:10.5px"> ${E.STAR_KO[s.name]}</span>`);
+    const zcls = { mg: 'gd', mn: '', mb: 'bd' };
+    const flags = (rel === 'sel' ? '<span class="f-sel">기준</span>' : rel === 'sf' ? '<span class="f-sf">삼방</span>' : rel === 'dg' ? '<span class="f-dg">대궁</span>' : '') + (p.branch === yearBranch ? '<span class="f-yn">유년</span>' : '');
+    el.innerHTML = `${flags ? `<span class="flags">${flags}</span>` : ''}<div class="stars">` +
+      major.map(s => `<span class="mj">${nm(s)}${huaTag(s)}</span>`).join('') +
+      (major.length ? '' : '<span class="area">주성 없음</span>') + '</div>' +
+      `<div style="display:grid;gap:3px"><div class="stars">${minor.map(s => `<span class="mn ${s.kind === 'good' ? 'gd' : 'bd'}">${simple ? E.STAR_KO[s.name] : s.name}${brTag(s)}${huaTag(s)}</span>`).join('')}${zap.map(s => `<span class="zp ${zcls[s.kind]}" title="${E.STAR_KO[s.name]}">${simple ? E.STAR_KO[s.name] : s.name}</span>`).join('')}</div>` +
+      (simple ? `<span class="ps">${PALACE_SIMPLE[p.name]}</span>` : '') +
+      `<div class="foot"><span class="pn">${p.name}${p.isShen ? '<em>신궁</em>' : ''}</span><span style="text-align:right;display:grid"><span class="gzs">${E.GAN[p.stem]}${E.ZHI[p.branch]}</span><span class="dxr">${p.daxian[0]}–${p.daxian[1]}</span><span class="cs xp">${p.cs}</span></span></div></div>`;
+    box.appendChild(el);
+  }
+  const ctr = document.createElement('div'); ctr.className = 'zcenter';
+  const yG = E.GAN[zw.yearStem] + E.ZHI[zw.yearBranch];
+  ctr.innerHTML = `<div class="nm">${esc(name)}</div><span>음력 ${lunar.year}년(${yG}) ${lunar.leap ? '윤' : ''}${lunar.month}월 ${lunar.day}일 ${E.ZHI[S.sj.pillars.hour.b]}시</span>` +
+    `<span class="ju">${zw.juName}</span><span>명궁 ${E.ZHI[zw.ming]} · 신궁 ${E.ZHI[zw.shen]}</span><span>${gender === 'F' ? (zw.yearStem % 2 ? '음녀' : '양녀') : (zw.yearStem % 2 ? '음남' : '양남')} · 대한 ${zw.forward ? '순행' : '역행'}</span>`;
+  box.appendChild(ctr);
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'zlines'); svg.setAttribute('aria-hidden', 'true'); box.appendChild(svg);
+  drawZLines();
+  const majorsK = p => p.stars.filter(s => s.kind === 'major').map(s => E.STAR_KO[s.name] + (s.br ? `(${s.br})` : '')).join('·') || '주성 없음';
+  const sp = zw.palaces[zSel], f1 = zw.palaces[(zSel + 4) % 12], f2 = zw.palaces[(zSel + 8) % 12], dg = zw.palaces[(zSel + 6) % 12];
+  $('sfline').innerHTML = `<b>${sp.name}</b>(${majorsK(sp)}) 기준 · 삼방 <b>${f1.name}</b>(${majorsK(f1)}), <b>${f2.name}</b>(${majorsK(f2)}) · 대궁 <b>${dg.name}</b>(${majorsK(dg)})`;
+  const dxP = zw.palaces.find(p => age >= p.daxian[0] && age <= p.daxian[1]);
+  $('qMing').setAttribute('aria-pressed', zSel === zw.ming); $('qDx').setAttribute('aria-pressed', !!dxP && zSel === dxP.branch && zSel !== zw.ming); $('qYn').setAttribute('aria-pressed', zSel === yearBranch && zSel !== zw.ming && !(dxP && zSel === dxP.branch));
+  $('qDx').dataset.b = dxP ? dxP.branch : ''; $('qYn').dataset.b = yearBranch;
+  const ming = zw.palaces[zw.ming], dx = zw.palaces.find(p => age >= p.daxian[0] && age <= p.daxian[1]);
+  const majors = p => p.stars.filter(s => s.kind === 'major').map(s => E.STAR_KO[s.name]).join('·') || '주성 없음';
+  const huaList = zw.palaces.flatMap(p => p.stars.filter(s => s.hua).map(s => `${E.STAR_KO[s.name]} ${s.hua}(${p.name})`));
+  $('zwInfo').innerHTML = simple
+    ? `<p><b>나를 나타내는 명궁에는 ${majors(ming)}이(가) 있어요.</b> 자미두수는 열두 칸(궁)이 각각 삶의 영역을 맡고, 그 칸에 들어온 별로 성향을 읽어요.</p>` +
+      (dx ? `<p>지금(한국식 ${age}세)은 <b>${dx.name}</b>(${PALACE_SIMPLE[dx.name]}) 칸이 10년 흐름을 이끄는 시기예요. 테두리로 표시했어요.</p>` : '') +
+      `<p>태어난 해가 정해 주는 네 가지 변화(록·권·과·기): ${huaList.join(', ')}.</p>`
+    : `<p><b>${zw.juName}</b>, 자미성 ${E.ZHI[zw.ziweiPos]}궁. 명궁 ${E.GAN[ming.stem]}${E.ZHI[ming.branch]}(${majors(ming)}), 신궁은 ${zw.palaces[zw.shen].name}.</p>` +
+      `<p>생년사화(${E.GAN[zw.yearStem]}): ${huaList.join(', ')}.</p>` +
+      (dx ? `<p>현재 허세 ${age}세 → 대한 ${dx.name} ${E.GAN[dx.stem]}${E.ZHI[dx.branch]} (${dx.daxian[0]}–${dx.daxian[1]}), 주성 ${majors(dx)}. ${ly}년 유년궁은 ${zw.palaces[yearBranch].name}.</p>` : '') +
+      (lunar.leap ? `<p class="area">윤달생: ${lunar.day <= 15 ? '15일 이전이라 같은 달' : '16일 이후라 다음 달'}(${zw.effMonth}월)로 명궁을 세웠어요.</p>` : '');
+}
+function drawZLines() {
+  const box = $('zw'), svg = box.querySelector('.zlines'), ctr = box.querySelector('.zcenter');
+  if (!svg || !ctr || zSel === null) return;
+  const B = box.getBoundingClientRect(), C = ctr.getBoundingClientRect();
+  const x0 = C.left - B.left, x1 = C.right - B.left, y0 = C.top - B.top, y1 = C.bottom - B.top;
+  const anchor = b => { const r = box.querySelector(`.zc[data-b="${b}"]`).getBoundingClientRect();
+    const cx = (r.left + r.right) / 2 - B.left, cy = (r.top + r.bottom) / 2 - B.top;
+    return [Math.min(Math.max(cx, x0), x1), Math.min(Math.max(cy, y0), y1)]; };
+  const a = anchor(zSel), f1 = anchor((zSel + 4) % 12), f2 = anchor((zSel + 8) % 12), d = anchor((zSel + 6) % 12);
+  svg.setAttribute('viewBox', `0 0 ${B.width} ${B.height}`);
+  svg.innerHTML = `<polygon points="${[a, f1, f2].map(p => p.join(',')).join(' ')}" fill="none" stroke="var(--brass)" stroke-width="1.6" stroke-linejoin="round" opacity=".8"/>` +
+    `<line x1="${a[0]}" y1="${a[1]}" x2="${d[0]}" y2="${d[1]}" stroke="var(--lapis)" stroke-width="1.6" stroke-dasharray="5 4" opacity=".85"/>` +
+    [a, f1, f2].map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="var(--brass)"/>`).join('') + `<circle cx="${d[0]}" cy="${d[1]}" r="3.5" fill="var(--lapis)"/>`;
+}
+function selectPalace(b) { if (!S || !S.zw || isNaN(b)) return; zSel = b; renderZiwei(S.zw, S.lunar, S.name, S.gender); const el = $('zw').querySelector(`.zc[data-b="${b}"]`); el && el.focus({ preventScroll: true }); }
+$('zw').addEventListener('click', e => { const c = e.target.closest('.zc'); if (c) selectPalace(+c.dataset.b); });
+$('zw').addEventListener('keydown', e => { const c = e.target.closest('.zc'); if (c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); selectPalace(+c.dataset.b); } });
+$('qMing').addEventListener('click', () => S && S.zw && selectPalace(S.zw.ming));
+$('qDx').addEventListener('click', () => selectPalace(parseInt($('qDx').dataset.b)));
+$('qYn').addEventListener('click', () => selectPalace(parseInt($('qYn').dataset.b)));
+try { new ResizeObserver(() => drawZLines()).observe($('zw')); } catch (e) { addEventListener('resize', drawZLines); }
+function ziweiText(zw, lunar) {
+  const { age, ly } = lunarAgeNow(lunar);
+  const L = [`[자미두수 명반] 음력 ${lunar.year}년 ${lunar.leap ? '윤' : ''}${lunar.month}월 ${lunar.day}일 ${E.ZHI[S.sj.pillars.hour.b]}시, ${zw.juName}, 명궁 ${E.ZHI[zw.ming]}, 신궁 ${E.ZHI[zw.shen]}(${zw.palaces[zw.shen].name}), 대한 ${zw.forward ? '순행' : '역행'}`];
+  for (let i = 0; i < 12; i++) {
+    const p = zw.palaces[E.mod(zw.ming - i, 12)];
+    L.push(`- ${p.name} ${E.GAN[p.stem]}${E.ZHI[p.branch]} (대한 ${p.daxian[0]}–${p.daxian[1]}): ` + (p.stars.filter(s => s.kind === 'major').map(s => `${s.name}${E.STAR_KO[s.name]}${s.br ? '[' + s.br + ']' : ''}${s.hua ? '(' + s.hua + ')' : ''}`).join(' ') || '주성 없음') +
+      ` / 보좌·살성: ${p.stars.filter(s => s.kind === 'good' || s.kind === 'bad').map(s => `${E.STAR_KO[s.name]}${s.br ? '[' + s.br + ']' : ''}${s.hua ? '(' + s.hua + ')' : ''}`).join(' ') || '없음'}` +
+      ` / 잡성: ${p.stars.filter(s => s.kind[0] === 'm' && s.kind !== 'major').map(s => E.STAR_KO[s.name] + (s.kind === 'mb' ? '(흉)' : '')).join(' ') || '없음'} / 장생12신 ${p.cs}`);
+  }
+  const sfz = b => { const q = [b, (b + 4) % 12, (b + 8) % 12, (b + 6) % 12].map(x => zw.palaces[x].name); return `${q[0]} 기준 삼방 ${q[1]}·${q[2]}, 대궁 ${q[3]}`; };
+  const dx = zw.palaces.find(p => age >= p.daxian[0] && age <= p.daxian[1]);
+  L.push('삼방사정: ' + sfz(zw.ming) + (dx && dx.branch !== zw.ming ? ' / 현재 대한 ' + sfz(dx.branch) : ''));
+  L.push(`현재 허세 ${age}세, 대한궁: ${dx ? dx.name + ' ' + E.GAN[dx.stem] + E.ZHI[dx.branch] : '범위 밖'}, ${ly}년 유년궁: ${zw.palaces[E.mod(ly - 4, 12)].name}`);
+  L.push('(밝기는 [묘/왕/득/리/평/불/함]. 대한·유년 사화와 박사·태세 12신은 계산하지 않았음)');
+  return L.join('\n');
+}
+
+// ---------- 지금 시기 ----------
+function renderTrio() {
+  const simple = mode === 'simple', now = new Date();
+  const ch = S.ch, md = ch.dasha.list.find(x => x.start <= now && now < x.end), ad = md && md.subs.find(x => x.start <= now && now < x.end);
+  const cur = curDaeun(S.sj, now), se = seun(now);
+  const zw = S.zw, ag = S.lunar ? lunarAgeNow(S.lunar) : null;
+  const dx = zw && zw.palaces.find(p => ag.age >= p.daxian[0] && ag.age <= p.daxian[1]);
+  const majors = p => p.stars.filter(s => s.kind === 'major').map(s => E.STAR_KO[s.name]).join('·') || '주성 없음';
+  $('trio').innerHTML =
+    `<div><span class="k">베딕 · 다샤</span><strong>${md ? `${LORD_KO[md.lord]} – ${LORD_KO[ad.lord]}` : '범위 밖'}</strong><p>${md ? (simple ? `${LORD_KO[md.lord]}의 큰 시기 (${md.end.getFullYear()}년까지)` : `MD ~${ymd(md.end)} · AD ~${ymd(ad.end)}`) : ''}</p></div>` +
+    `<div><span class="k">사주 · 대운</span><strong>${cur ? `${gzHan(cur)} 대운` : '대운 전'} · ${gzHan(se.p)}년</strong><p>${cur ? (simple ? `${cur.stemGod}·${cur.branchGod}의 10년, 올해는 ${E.tenGod(S.sj.pillars.day.s, se.p.s)}의 해` : `${cur.stemGod}/${cur.branchGod} · ${cur.age}세~ · 세운 ${E.tenGod(S.sj.pillars.day.s, se.p.s)}`) : ''}</p></div>` +
+    `<div><span class="k">자미두수 · 대한</span><strong>${dx ? dx.name + ' 대한' : '—'}</strong><p>${dx ? (simple ? `${PALACE_SIMPLE[dx.name]}의 10년 · ${majors(dx)}` : `${E.GAN[dx.stem]}${E.ZHI[dx.branch]} · ${majors(dx)} · 허세 ${ag.age}세 · 유년 ${zw.palaces[E.mod(ag.ly - 4, 12)].name}`) : ''}</p></div>`;
+}
+
+// ---------- AI reading ----------
+const DEFAULT_RULES = `너는 '가온'이라는 이름으로 상담하는 리더다. 베딕 점성술(조티샤), 사주명리, 자미두수를 함께 본다. 한국어로, 따뜻하지만 군더더기 없이 말한다.
+
+[공통]
+- 아래 데이터에 있는 값만 근거로 삼는다. 데이터에 없는 배치, 신살, 격국, 요가를 지어내지 않는다. 필요한 값이 없으면 없다고 말한다.
+- 질문에 맞는 체계를 고르고, 여러 체계를 쓸 때는 각 체계가 무엇을 근거로 무엇을 말하는지 구분해서 보여 준다. 세 체계가 같은 방향을 가리키는 부분은 확신을 높여 말하고, 엇갈리는 부분은 엇갈린다고 솔직히 말한다.
+- 시기 비교는 베딕 다샤, 사주 대운·세운, 자미두수 대한·유년을 나란히 놓고 겹치는 주제를 찾는다.
+
+[베딕]
+- 에른스트 빌헬름 방식: 라시와 하우스는 트로피컬 홀사인, 낙샤트라와 빔쇼타리 다샤는 드루바 적도 낙샤트라 기준.
+- 결혼·배우자와 행성의 힘은 나밤샤(D9)를 함께 본다. 바르곳타마는 안정된 힘으로 본다.
+- 하우스 로드와 놓인 하우스, 품위, 낙샤트라 로드를 연결해 읽는다. 시기는 다샤 로드가 다스리는 하우스로 보고, 트랜짓(목성·토성·라후·케투)으로 좁힌다. 다른 날짜의 트랜짓은 getTransits 도구가 있을 때 계산한다.
+
+[사주]
+- 일간을 중심으로 월령, 오행의 많고 적음, 십성의 배치로 성향과 쓰임을 읽는다. 신강·신약과 용신은 근거를 밝히고 단정하지 않는다.
+- 대운과 세운은 원국 일간에 대한 십성과 원국 글자와의 합충으로 본다.
+
+[자미두수]
+- 명궁·신궁의 주성과 삼방사정(명궁·재백궁·관록궁·천이궁)을 함께 본다. 생년사화가 들어간 궁을 중요하게 본다.
+- 주성 밝기(묘왕은 힘이 잘 드러남, 불함은 힘이 약하거나 굴곡)를 반영하고, 육길성·육살성을 먼저 보고 잡성은 보조로만 쓴다.
+- 시기는 현재 대한궁과 유년궁의 주성으로 설명한다. 대한사화·유년사화는 데이터에 없으니 언급할 때 그렇다고 말한다.
+
+[답하는 방식]
+- 근거가 되는 배치를 한두 개씩 짚되, 전문 용어는 쉬운 말로 풀어 준다.
+- 답은 휴대폰 한두 화면 분량. 핵심부터 말하고, 마지막에 더 깊이 볼 만한 질문을 하나 제안한다.
+
+[하지 않는 것]
+- 수명, 사망, 사고, 질병 진단, 임신 여부를 예언하지 않는다. 건강·법률·투자 결정은 전문가 상담을 권한다.
+- 겁을 주거나 운명을 단정하지 않는다. 경향과 시기로 말한다.`;
+
+let rules = DEFAULT_RULES;
+try { const s = localStorage.getItem('gaon3-rules'); if (s) rules = s; } catch (e) {}
+const rulesEl = $('rules'); rulesEl.value = rules;
+rulesEl.addEventListener('input', () => { rules = rulesEl.value; try { localStorage.setItem('gaon3-rules', rules); } catch (e) {} });
+$('resetRules').addEventListener('click', () => { rules = DEFAULT_RULES; rulesEl.value = rules; try { localStorage.removeItem('gaon3-rules'); } catch (e) {} });
+
+const SIGN_LORD = ['Mars','Venus','Mercury','Moon','Sun','Mercury','Venus','Mars','Jupiter','Saturn','Saturn','Jupiter'];
+let texts = { V: '', S: '', Z: '' }, turns = [], ctl = null, sampleFn = undefined, natal = null;
+
+function buildChartText(ch, meta) {
+  const L = [];
+  L.push(`[기본 정보] ${meta}`);
+  L.push(`[베딕 차트] 라그나: ${V.RASI_KO[ch.lagnaSign]} ${dms(ch.rows.Asc.deg)}, 낙샤트라 ${ch.rows.Asc.nak.name} ${ch.rows.Asc.nak.pada}파다`);
+  L.push('행성 (트로피컬 라시 / 홀사인 하우스 / 적도 낙샤트라·파다·로드):');
+  for (const p of ORDER.slice(1)) { const r = ch.rows[p];
+    L.push(`- ${V.PL_KO[p]}${r.retro ? ' (역행)' : ''}: ${V.RASI_KO[r.sign]} ${dms(r.deg)}, ${r.house}하우스, ${r.nak.name} ${r.nak.pada}파다 (로드 ${LORD_KO[r.nak.lord]})`); }
+  const d9L = ch.rows.Asc.d9sign;
+  L.push(`나밤샤(D9): 라그나 ${V.RASI_KO[d9L]}`);
+  for (const p of ORDER.slice(1)) { const r = ch.rows[p];
+    L.push(`- ${V.PL_KO[p]}: D9 ${V.RASI_KO[r.d9sign]} ${dms(r.d9deg)}, D9 ${((r.d9sign - d9L + 12) % 12) + 1}하우스${r.sign === r.d9sign ? ' (바르곳타마)' : ''}`); }
+  L.push('하우스 로드 (하우스: 별자리 → 로드가 놓인 하우스):');
+  for (let h = 1; h <= 12; h++) { const s = (ch.lagnaSign + h - 1) % 12, lord = SIGN_LORD[s];
+    L.push(`- ${h}하우스 ${SIGN_SHORT[s]}자리 → 로드 ${LORD_KO[lord]}, ${ch.rows[lord].house}하우스`); }
+  const now = new Date(); const md = ch.dasha.list.find(x => x.start <= now && now < x.end);
+  if (md) { const i = md.subs.findIndex(x => x.start <= now && now < x.end);
+    L.push(`현재 마하다샤: ${LORD_KO[md.lord]} (${ymd(md.start)}–${ymd(md.end)})`);
+    L.push('안타르다샤: ' + md.subs.map((s, j) => `${LORD_KO[s.lord]} ${ymd(s.start)}${j === i ? '(현재)' : ''}`).join(', ')); }
+  L.push('마하다샤 순서: ' + ch.dasha.list.map(m => `${LORD_KO[m.lord]} ${ymd(m.start)}–${ymd(m.end)}`).join(', '));
+  L.push('', transitText(now), '', ingressText(now));
+  return L.join('\n');
+}
+function transitText(date) {
+  const tr = V.chart(date, natal.lat, natal.lon);
+  const L = [`[트랜짓 ${ymd(date)}] (하우스는 출생 라그나 기준 / 괄호는 출생 달 기준)`];
+  for (const p of ORDER.slice(1)) { const r = tr.rows[p];
+    const fromMoon = ((r.sign - natal.moonSign + 12) % 12) + 1;
+    L.push(`- ${V.PL_KO[p]}${r.retro ? ' (역행)' : ''}: ${V.RASI_KO[r.sign]} ${dms(r.deg)}, ${((r.sign - natal.lagnaSign + 12) % 12) + 1}하우스 (달에서 ${fromMoon}번째), ${r.nak.name} ${r.nak.pada}파다`); }
+  return L.join('\n');
+}
+function ingressText(from) {
+  const L = ['[느린 행성 별자리 이동, 향후 3년]'];
+  for (const p of ['Jupiter', 'Saturn', 'Rahu']) {
+    let prev = V.chart(from, natal.lat, natal.lon).rows[p].sign; const ev = [];
+    for (let d = 7; d <= 3 * 366; d += 7) { const dt = new Date(from.getTime() + d * 864e5); const s = V.chart(dt, natal.lat, natal.lon).rows[p].sign;
+      if (s !== prev) { ev.push(`${ymd(dt)}경 ${SIGN_SHORT[s]}자리(${((s - natal.lagnaSign + 12) % 12) + 1}하우스)`); prev = s; } }
+    L.push(`- ${V.PL_KO[p]}: ` + (ev.length ? ev.join(', ') : '이동 없음'));
+  }
+  return L.join('\n');
+}
+const TRANSIT_TOOL = { name: 'getTransits', description: '특정 날짜의 베딕 행성 트랜짓 위치(트로피컬 라시, 출생 라그나·달 기준 하우스, 적도 낙샤트라, 역행)를 계산해 돌려준다. 미래나 과거 특정 시기를 예측·확인할 때 사용한다.',
+  inputSchema: { type: 'object', properties: { date: { type: 'string', description: 'YYYY-MM-DD' } }, required: ['date'] },
+  execute: ({ date }) => { const m = String(date).match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) throw new Error('date는 YYYY-MM-DD 형식이어야 해요');
+    return transitText(new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], 3))); } };
+
+const MODE_RULES = {
+  simple: `[말투: 일반인용]
+- 전문 용어(라그나, 다샤, 낙샤트라, 십성 이름, 궁 이름, 사화 등)를 그대로 쓰지 않는다. 꼭 필요하면 한 번만 쉬운 말과 함께 괄호로 넣는다.
+- 근거는 "지금 목성이 이끄는 시기라서", "태어난 날의 글자가 나무 기운이라"처럼 한 문장으로만 짚고, 생활 속 예시로 풀어 준다.`,
+  expert: `[말투: 전문가용]
+- 각 체계의 용어를 그대로 쓰고, 근거 배치를 구체적으로 인용한다(베딕: 라시·도수·하우스·로드·낙샤트라·다샤 / 사주: 간지·십성·12운성·대운·세운 / 자미두수: 궁·주성·사화·대한).
+- 해석 논리를 단계별로 보여 주고, 해석이 갈릴 수 있는 부분은 그렇다고 말한다.`
+};
+const msgs = $('msgs');
+function addMsg(cls, text) { const d = document.createElement('div'); d.className = 'm ' + cls; d.textContent = text; msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight; return d; }
+function resetChat(name) { $('copyFb').hidden = true; $('copySt').classList.remove('ok'); $('copySt').textContent = '질문과 답을 한 번에 복사할 수 있어요'; turns = []; ctl?.abort(); msgs.innerHTML = ''; addMsg('sys', `${name}님의 세 차트가 준비됐어요. 아래에서 질문을 골라 보거나 직접 물어보세요.`); $('chips').hidden = false; }
+const ERR = { not_granted: 'AI 리딩 사용이 허용되지 않았어요. 이 페이지에서 Claude 사용을 허용하면 리딩을 받을 수 있어요.', sampling_disabled: '이 계정에서는 AI 리딩을 쓸 수 없어요.',
+  rate_limited: '요청이 많아 잠시 쉬어야 해요. 조금 뒤에 다시 물어보세요.', session_expired: '다시 로그인한 뒤 물어보세요.', refused: '이 질문에는 답할 수 없어요. 다르게 물어봐 주세요.',
+  prompt_too_large: '대화가 너무 길어졌어요. 차트를 다시 계산하면 새 대화로 시작해요.' };
+
+function contextText() {
+  const parts = [], used = [];
+  if ($('useV').checked) { parts.push(texts.V); used.push('베딕'); }
+  else parts.push(texts.V.split('\n')[0]);
+  if ($('useS').checked) { parts.push(texts.S); used.push('사주'); }
+  if ($('useZ').checked && texts.Z) { parts.push(texts.Z); used.push('자미두수'); }
+  parts.push(`오늘 날짜: ${ymd(new Date())}`, `[이번 질문에 쓸 체계] ${used.join(', ') || '없음'} — 이 체계로만 답한다.`);
+  return parts.join('\n\n');
+}
+async function ask(q) {
+  q = q.trim(); if (!q || ctl) return;
+  if (!$('useV').checked && !$('useS').checked && !$('useZ').checked) { addMsg('sys', '리딩에 쓸 체계를 하나 이상 골라 주세요.'); return; }
+  if (sampleFn === undefined) sampleFn = await window.claude?.use?.('sample') ?? null;
+  if (!sampleFn) { addMsg('sys', 'AI 리딩은 Claude 앱에서 이 페이지를 열었을 때 쓸 수 있어요.'); return; }
+  $('chips').hidden = true; addMsg('u', q); $('q').value = '';
+  turns.push({ role: 'user', content: q });
+  const bubble = addMsg('a wait', '차트를 읽는 중이에요…');
+  ctl = new AbortController(); $('stop').hidden = false; $('send').disabled = true;
+  const history = turns.slice(-12);
+  try {
+    if (sampleFn.toolsOk === undefined) { const lim = await sampleFn.limits?.().catch(() => null); sampleFn.toolsOk = !!lim?.tools; }
+    const useTools = sampleFn.toolsOk && $('useV').checked;
+    const { text } = await sampleFn([{ role: 'user', content: rules + '\n\n' + MODE_RULES[mode] + '\n\n' + contextText() + '\n\n위 지침과 데이터로만 답해 줘. 이제 상담을 시작한다.' }, { role: 'assistant', content: '네, 준비됐어요.' }, ...history],
+      { cache: false, signal: ctl.signal, ...(useTools ? { tools: [TRANSIT_TOOL] } : {}), onText: ({ text }) => { bubble.classList.remove('wait'); bubble.textContent = text; msgs.scrollTop = msgs.scrollHeight; } });
+    turns.push({ role: 'assistant', content: text });
+  } catch (e) {
+    turns.pop();
+    if (e.text) { bubble.classList.remove('wait'); bubble.textContent = e.text; turns.push({ role: 'user', content: q }, { role: 'assistant', content: e.text }); }
+    else bubble.remove();
+    if (e.code !== 'cancelled') addMsg('sys', ERR[e.code] || '연결이 잠시 끊겼어요. 다시 보내 주세요.');
+  } finally { ctl = null; $('stop').hidden = true; $('send').disabled = false; }
+}
+function transcript() {
+  const used = [['useV', '베딕'], ['useS', '사주'], ['useZ', '자미두수']].filter(([id]) => $(id).checked).map(x => x[1]);
+  const trio = [...document.querySelectorAll('#trio > div')].map(d => '- ' + [...d.children].map(c => c.textContent.trim()).filter(Boolean).join(' · ')).join('\n');
+  const L = ['[가온 상담 기록]', `대상: ${S?.metaLine || ''}`, `상담일: ${ymd(new Date())} · 사용 체계: ${used.join(', ')} · ${mode === 'simple' ? '쉬운 풀이' : '전문가용'}`, '', '지금 시기', trio, ''];
+  turns.forEach(t => { L.push(t.role === 'user' ? `Q. ${t.content}` : `A. ${t.content}`, ''); });
+  const live = ctl ? msgs.querySelector('.m.a:last-of-type') : null;
+  if (live && !live.classList.contains('wait')) L.push(`A. ${live.textContent} (작성 중)`, '');
+  return L.join('\n').trim();
+}
+$('copyAll').addEventListener('click', () => {
+  const st = $('copySt'); st.classList.remove('ok'); $('copyFb').hidden = true;
+  if (!turns.length) { st.textContent = '아직 복사할 상담 내용이 없어요. 먼저 질문해 보세요.'; return; }
+  const text = transcript();
+  const fallback = () => { $('copyTa').value = text; $('copyFb').hidden = false; const ta = $('copyTa'); ta.focus(); ta.select(); st.textContent = '아래 글을 직접 복사해 주세요.'; };
+  try {
+    navigator.clipboard.writeText(text).then(() => { st.textContent = `복사했어요 · 질문 ${turns.filter(t => t.role === 'user').length}개`; st.classList.add('ok'); }, fallback);
+  } catch (e) { fallback(); }
+});
+$('cf').addEventListener('submit', e => { e.preventDefault(); ask($('q').value); });
+$('q').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask($('q').value); } });
+$('stop').addEventListener('click', () => ctl?.abort());
+document.querySelectorAll('#chips .chip').forEach(b => b.addEventListener('click', () => ask(b.textContent)));
+
+$('showZap').addEventListener('change', () => { if (S) renderZiwei(S.zw, S.lunar, S.name, S.gender); });
+$('showBr').addEventListener('change', () => { if (S) renderZiwei(S.zw, S.lunar, S.name, S.gender); });
+$('mSimple').addEventListener('click', () => setMode('simple'));
+$('mExpert').addEventListener('click', () => setMode('expert'));
+document.body.classList.toggle('simple', mode === 'simple');
+$('mSimple').setAttribute('aria-pressed', mode === 'simple'); $('mExpert').setAttribute('aria-pressed', mode === 'expert');
+try { const dm = localStorage.getItem('gaon3-daeMode'); if (dm && DAE_MODE_KO[dm]) $('daeMode').value = dm; } catch (e) {}
+$('daeMode').addEventListener('change', () => { try { localStorage.setItem('gaon3-daeMode', $('daeMode').value); } catch (e) {} render(); });
+$('f').addEventListener('submit', e => { e.preventDefault(); render(); });
+if (window.Astronomy) { try { render(); } catch (err) { $('msg').textContent = '계산 중 문제가 생겼어요: ' + err.message; } }
+else $('msg').textContent = '천문 계산 라이브러리를 불러오지 못했어요. 새로고침해 주세요.';
+</script>
+
+
+<footer class="gaon-foot">© 가온 · <a href="https://www.instagram.com/tantan.life/" target="_blank" rel="noopener">Instagram @tantan.life</a> · <a href="https://the-path-of-life.tistory.com/" target="_blank" rel="noopener">Blog</a><br>입력한 정보는 이 기기 안에만 저장되고 서버로 보내지지 않아요.</footer>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))}</script>
+</body></html>

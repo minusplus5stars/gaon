@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta name="description" content="오늘의 용기 한 마디 · 가온">
+<meta name="theme-color" content="#1C2742">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="가온">
+<style>
+.gaon-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1040px;margin:0 auto;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));
+  font:500 13px "IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+.gaon-nav a{color:inherit;opacity:.7;text-decoration:none}
+.gaon-nav a:hover{opacity:1}
+.gaon-foot{max-width:1040px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-right,0px)) max(28px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  font:12px "IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;opacity:.7;text-align:center}
+.gaon-foot a{color:inherit}
+.gaon-ai-soon{border:1px dashed currentColor;border-radius:8px;padding:14px 16px;opacity:.75;font-size:14px;line-height:1.6}
+.gaon-ai-soon b{display:block;font-size:15px;margin-bottom:2px}
+</style>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오늘의 용기 한 마디</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#fff6ec; --bg2:#fde7e1; --ink:#3b2f2a; --soft:#8a7268;
+    --accent:#e0795b; --accent2:#f2b56b; --card:#fffdf9; --line:#f1ddd2;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg1:#1f1a24; --bg2:#2a1f26; --ink:#f6ebe4; --soft:#c2aba1;
+      --accent:#f09a7c; --accent2:#f5c27f; --card:#2b2430; --line:#3d3340; }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Gowun Dodum',sans-serif; color:var(--ink);
+    background:linear-gradient(160deg,var(--bg1),var(--bg2));
+    min-height:100vh; display:flex; justify-content:center;
+    padding:28px 18px 60px;
+  }
+  .wrap{width:100%;max-width:460px}
+  header{text-align:center;margin-bottom:22px}
+  .sun{font-size:34px;display:inline-block;animation:float 4s ease-in-out infinite}
+  @keyframes float{50%{transform:translateY(-6px)}}
+  h1{font-family:'Gowun Batang',serif;font-size:24px;margin-top:6px}
+  .date{color:var(--soft);font-size:14px;margin-top:4px}
+
+  .name-row{display:flex;gap:8px;margin-bottom:16px}
+  .name-row input{
+    flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);
+    border-radius:14px;padding:11px 14px;font:inherit;font-size:15px;outline:none;
+  }
+  .name-row input:focus{border-color:var(--accent)}
+
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
+  .tab{
+    border:1px solid var(--line);background:var(--card);color:var(--soft);
+    padding:8px 14px;border-radius:999px;font:inherit;font-size:14px;cursor:pointer;
+  }
+  .tab.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+  .card{
+    background:var(--card);border-radius:26px;padding:38px 26px 30px;
+    box-shadow:0 10px 30px rgba(180,110,80,.15);min-height:260px;
+    display:flex;flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;position:relative;overflow:hidden;
+  }
+  .card::before{
+    content:"";position:absolute;width:220px;height:220px;border-radius:50%;
+    background:radial-gradient(circle,var(--accent2),transparent 70%);
+    opacity:.22;top:-80px;right:-70px;
+  }
+  .tag{font-size:13px;color:var(--accent);letter-spacing:.05em;margin-bottom:14px}
+  .msg{
+    font-family:'Gowun Batang',serif;font-size:21px;line-height:1.75;
+    word-break:keep-all;white-space:pre-line;
+  }
+  .fade{animation:fade .6s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .actions{display:flex;gap:10px;margin-top:18px}
+  .btn{
+    flex:1;border:none;border-radius:16px;padding:15px 10px;font:inherit;font-size:16px;cursor:pointer;
+    background:var(--card);color:var(--ink);border:1px solid var(--line);
+  }
+  .btn.main{flex:2;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;
+    box-shadow:0 6px 16px rgba(224,121,91,.35)}
+  .btn:active{transform:scale(.97)}
+  .heart.on{color:var(--accent)}
+
+  .breath{
+    margin-top:26px;background:var(--card);border-radius:22px;padding:22px;text-align:center;
+    border:1px solid var(--line);
+  }
+  .breath h2,.saved h2{font-family:'Gowun Batang',serif;font-size:17px;margin-bottom:12px}
+  .circle{
+    width:110px;height:110px;border-radius:50%;margin:10px auto 14px;
+    background:radial-gradient(circle,var(--accent2),var(--accent));opacity:.85;
+    transform:scale(.6);transition:transform 4s ease-in-out;
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;
+  }
+  .circle.grow{transform:scale(1)}
+  .small{color:var(--soft);font-size:13px}
+
+  .saved{margin-top:22px}
+  .saved ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .saved li{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 40px 12px 14px;
+    font-size:14px;line-height:1.6;position:relative;word-break:keep-all;
+  }
+  .saved li button{position:absolute;right:8px;top:8px;border:none;background:none;color:var(--soft);font-size:16px;cursor:pointer}
+  .empty{color:var(--soft);font-size:14px;text-align:center}
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:var(--card);padding:10px 18px;border-radius:999px;font-size:14px;
+    opacity:0;transition:.3s;pointer-events:none;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<nav class="gaon-nav"><a href="/">← 가온 홈</a><span style="opacity:.55">가온</span></nav>
+
+<div class="wrap">
+  <header>
+    <div class="sun">☀️</div>
+    <h1>오늘의 용기 한 마디</h1>
+    <div class="date" id="date"></div>
+  </header>
+
+  <div class="name-row">
+    <input id="name" placeholder="이름을 적으면 불러드릴게요 (선택)" maxlength="12">
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="card">
+    <div class="tag" id="tag"></div>
+    <div class="msg fade" id="msg"></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn heart" id="fav" aria-label="저장">♡</button>
+    <button class="btn main" id="next">한 마디 더</button>
+    <button class="btn" id="copy" aria-label="복사">복사</button>
+  </div>
+
+  <div class="breath">
+    <h2>잠깐, 숨 한 번</h2>
+    <div class="circle" id="circle">시작</div>
+    <button class="btn" id="breathBtn" style="width:100%">같이 숨 쉬기 (3번)</button>
+    <p class="small" style="margin-top:10px">4초 들이쉬고, 4초 내쉬어요.</p>
+  </div>
+
+  <div class="saved">
+    <h2>💌 간직한 말들</h2>
+    <ul id="savedList"></ul>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const M = {
+  "용기": [
+    "완벽하지 않아도 시작할 수 있어요.\n시작하는 순간, 이미 절반은 해낸 거예요.",
+    "두려움이 있다는 건\n그만큼 소중한 걸 하려 한다는 뜻이에요.",
+    "{n} 오늘 한 걸음이면 충분해요.\n작은 걸음도 앞으로 가는 걸음이니까요.",
+    "실패는 끝이 아니라\n다음 시도를 위한 정보예요.",
+    "망설이는 마음까지 데리고 가도 괜찮아요.\n용기는 떨지 않는 게 아니라, 떨면서도 가는 거예요.",
+    "당신이 생각하는 것보다\n당신은 훨씬 단단한 사람이에요.",
+    "누군가의 허락을 기다리지 않아도 돼요.\n{n} 당신 인생의 결정권자는 당신이에요.",
+    "어제 못 했다고 오늘도 못 하는 건 아니에요.",
+    "해보고 후회하는 쪽이\n안 해보고 궁금해하는 쪽보다 가벼워요.",
+    "지금 떨리는 건\n당신이 성장의 문턱에 서 있다는 신호예요.",
+    "할 수 있을까 싶은 그 일,\n이미 여기까지 온 당신이라면 해낼 수 있어요.",
+    "남들의 속도는 신경 쓰지 마세요.\n당신의 길에는 당신의 시계가 있어요."
+  ],
+  "희망": [
+    "긴 밤도 결국 아침에게 자리를 내줘요.\n지금 이 시간도 그렇게 지나갈 거예요.",
+    "{n} 아직 오지 않은 좋은 날들이\n당신을 기다리고 있어요.",
+    "씨앗은 땅속에서 보이지 않을 때\n가장 열심히 자라고 있어요.",
+    "오늘이 별로였다면,\n내일은 새로 쓸 수 있는 빈 페이지예요.",
+    "멈춘 것 같아도 괜찮아요.\n겨울나무도 봄을 준비하는 중이니까요.",
+    "지금의 어려움이\n언젠가 당신만의 이야기가 될 거예요.",
+    "길이 안 보일 때는\n바로 앞 한 칸만 비추면 돼요.",
+    "좋은 일은 생각보다 가까이,\n생각보다 조용히 다가오고 있어요.",
+    "{n} 당신의 내일은\n오늘의 당신이 상상하는 것보다 따뜻할 거예요.",
+    "꽃마다 피는 계절이 달라요.\n당신의 계절도 반드시 와요.",
+    "조금 돌아가는 길에서\n더 좋은 풍경을 만나기도 해요."
+  ],
+  "위로": [
+    "오늘 많이 애썼어요.\n그것만으로도 충분히 잘한 하루예요.",
+    "{n} 울고 싶으면 울어도 돼요.\n마음도 비가 와야 맑아지니까요.",
+    "지쳤다는 건\n그만큼 열심히 살아왔다는 증거예요.",
+    "모든 걸 다 잘하지 않아도 괜찮아요.\n당신은 존재만으로 소중해요.",
+    "쉬는 것도 앞으로 가는 방법 중 하나예요.",
+    "{n} 당신의 마음이 힘들었던 만큼\n오늘 밤은 조금 더 편안하길 바라요.",
+    "남에게 하듯 다정하게\n자신에게도 말해주세요. \"수고했어.\"",
+    "버티고 있는 것만으로도\n당신은 이미 대단한 일을 하고 있어요.",
+    "괜찮지 않아도 괜찮아요.\n그런 날도 당신의 일부예요.",
+    "혼자라고 느껴질 때도\n당신을 응원하는 마음은 어딘가에 꼭 있어요.",
+    "오늘은 잘하려 하지 말고\n그냥 따뜻하게 지내요."
+  ],
+  "칭찬": [
+    "{n} 당신의 다정함은\n생각보다 많은 사람을 살게 해요.",
+    "포기하지 않고 여기까지 온 당신,\n정말 멋져요.",
+    "당신이 웃으면\n주변 공기가 조금 더 밝아져요.",
+    "작은 약속을 지키는 당신의 성실함,\n누군가는 분명히 보고 있어요.",
+    "당신은 누군가에게\n'만나서 다행인 사람'이에요.",
+    "{n} 오늘도 일어나서 하루를 살아낸 것,\n그거 진짜 대단한 거예요.",
+    "당신의 고민 깊이만큼\n당신은 깊은 사람이에요.",
+    "어제보다 아주 조금이라도 나아졌다면\n그건 큰 성장이에요.",
+    "당신이라는 사람이 있어서\n세상이 조금 더 괜찮아요.",
+    "실수한 뒤에도 다시 해보는 당신,\n그게 진짜 강함이에요."
+  ]
+};
+const cats = ["전체", ...Object.keys(M)];
+let cat = "전체", current = null, lastIdx = {};
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+let saved = store.get("cg_saved", []);
+$("name").value = store.get("cg_name", "");
+
+const d = new Date();
+$("date").textContent = `${d.getMonth()+1}월 ${d.getDate()}일 ${["일","월","화","수","목","금","토"][d.getDay()]}요일, 당신에게 보내는 말`;
+
+function render(text){
+  const n = $("name").value.trim();
+  return text.replace("{n} ", n ? `${n}님, ` : "").replace("{n}", n ? `${n}님` : "");
+}
+function pick(){
+  const pool = cat === "전체"
+    ? Object.entries(M).flatMap(([c, arr]) => arr.map(t => ({c, t})))
+    : M[cat].map(t => ({c: cat, t}));
+  let i;
+  do { i = Math.floor(Math.random() * pool.length); } while (pool.length > 1 && current && pool[i].t === current.t);
+  current = pool[i];
+  show();
+}
+function show(){
+  const el = $("msg");
+  el.classList.remove("fade"); void el.offsetWidth; el.classList.add("fade");
+  el.textContent = render(current.t);
+  $("tag").textContent = "✦ " + current.c;
+  const isSaved = saved.includes(render(current.t));
+  $("fav").textContent = isSaved ? "♥" : "♡";
+  $("fav").classList.toggle("on", isSaved);
+}
+function drawTabs(){
+  $("tabs").innerHTML = "";
+  cats.forEach(c => {
+    const b = document.createElement("button");
+    b.className = "tab" + (c === cat ? " on" : "");
+    b.textContent = c;
+    b.onclick = () => { cat = c; drawTabs(); pick(); };
+    $("tabs").appendChild(b);
+  });
+}
+function drawSaved(){
+  const ul = $("savedList"); ul.innerHTML = "";
+  if (!saved.length){ ul.innerHTML = '<p class="empty">마음에 닿은 말에 ♡를 눌러 간직해 보세요.</p>'; return; }
+  saved.slice().reverse().forEach(t => {
+    const li = document.createElement("li"); li.textContent = t.replace(/\n/g, " ");
+    const x = document.createElement("button"); x.textContent = "×"; x.setAttribute("aria-label","삭제");
+    x.onclick = () => { saved = saved.filter(s => s !== t); store.set("cg_saved", saved); drawSaved(); show(); };
+    li.appendChild(x); ul.appendChild(li);
+  });
+}
+function toast(t){ const el = $("toast"); el.textContent = t; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"), 1600); }
+
+$("next").onclick = pick;
+$("fav").onclick = () => {
+  const t = render(current.t);
+  if (saved.includes(t)) saved = saved.filter(s => s !== t);
+  else { saved.push(t); toast("마음에 간직했어요 💛"); }
+  store.set("cg_saved", saved); drawSaved(); show();
+};
+$("copy").onclick = async () => {
+  try { await navigator.clipboard.writeText(render(current.t)); toast("복사했어요. 누군가에게 보내보세요 ✉️"); }
+  catch(e){ toast("길게 눌러서 복사해 주세요"); }
+};
+$("name").addEventListener("input", () => { store.set("cg_name", $("name").value.trim()); show(); });
+
+let breathing = false;
+$("breathBtn").onclick = async () => {
+  if (breathing) return; breathing = true;
+  const c = $("circle"), wait = ms => new Promise(r => setTimeout(r, ms));
+  for (let i = 0; i < 3; i++){
+    c.textContent = "들이쉬고"; c.classList.add("grow"); await wait(4000);
+    c.textContent = "내쉬고"; c.classList.remove("grow"); await wait(4000);
+  }
+  c.textContent = "잘했어요"; breathing = false;
+};
+
+drawTabs(); drawSaved(); pick();
+</script>
+
+<footer class="gaon-foot">© 가온 · <a href="https://www.instagram.com/tantan.life/" target="_blank" rel="noopener">Instagram @tantan.life</a> · <a href="https://the-path-of-life.tistory.com/" target="_blank" rel="noopener">Blog</a><br>입력한 정보는 이 기기 안에만 저장되고 서버로 보내지지 않아요.</footer>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))}</script>
+</body>
+</html>

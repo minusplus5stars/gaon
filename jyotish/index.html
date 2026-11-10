@@ -1,0 +1,584 @@
+<!doctype html><html lang="ko"><head>
+<meta name="description" content="가온 조티샤 차트 · 가온">
+<meta name="theme-color" content="#1C2742">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="가온">
+<style>
+.gaon-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1040px;margin:0 auto;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));
+  font:500 13px "IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+.gaon-nav a{color:inherit;opacity:.7;text-decoration:none}
+.gaon-nav a:hover{opacity:1}
+.gaon-foot{max-width:1040px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-right,0px)) max(28px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  font:12px "IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;opacity:.7;text-align:center}
+.gaon-foot a{color:inherit}
+.gaon-ai-soon{border:1px dashed currentColor;border-radius:8px;padding:14px 16px;opacity:.75;font-size:14px;line-height:1.6}
+.gaon-ai-soon b{display:block;font-size:15px;margin-bottom:2px}
+</style>
+<meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<nav class="gaon-nav"><a href="/">← 가온 홈</a><span style="opacity:.55">가온</span></nav>
+
+<title>가온 조티샤 차트</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+Symbols&display=swap">
+<style>
+/* Layout: one working column — birth form, then South Indian chart beside planet table, then dasha timeline */
+:root {
+  --bg: #f6f5f1; --surface: #ffffff; --ink: #1d2338; --muted: #5d6378; --line: #dcdbe2;
+  --lapis: #2c3f86; --brass: #a86f12; --brass-soft: #f4e6c8; --lapis-soft: #e6e9f5;
+  --f-display: "Gowun Batang", "Nanum Myeongjo", serif;
+  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121522; --surface: #1b1f30; --ink: #e8e6df; --muted: #9da2b5; --line: #2e3348;
+  --lapis: #9fb0ee; --brass: #e2a948; --brass-soft: #3a2f1b; --lapis-soft: #232a45; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121522; --surface: #1b1f30; --ink: #e8e6df; --muted: #9da2b5; --line: #2e3348;
+  --lapis: #9fb0ee; --brass: #e2a948; --brass-soft: #3a2f1b; --lapis-soft: #232a45; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.6; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px; }
+header h1 { font-family: var(--f-display); font-size: clamp(26px, 5vw, 36px); margin: 0; font-weight: 700; text-wrap: balance; }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+.tag { display: inline-block; font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--brass); margin-bottom: 8px; }
+h2 { font-family: var(--f-display); font-size: 21px; margin: 0 0 12px; font-weight: 700; }
+form { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); align-items: end; }
+label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 500; }
+input, select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; min-width: 0; }
+input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--lapis); outline-offset: 2px; }
+button { font: inherit; font-weight: 600; background: var(--lapis); color: var(--surface); border: 0; border-radius: 6px; padding: 9px 14px; cursor: pointer; }
+.coords[hidden] { display: none !important; }
+.meta { font-family: var(--f-mono); font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.meta b { color: var(--ink); font-weight: 500; }
+.example { background: var(--brass-soft); color: var(--brass); font-size: 12.5px; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
+.grid2 { display: grid; gap: 24px; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); align-items: start; }
+@media (max-width: 780px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+.si { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); aspect-ratio: 1; max-width: 100%; border: 1.5px solid var(--ink); background: var(--surface); }
+.cell { border: .5px solid var(--line); padding: 5px 6px; position: relative; font-size: 12.5px; overflow: hidden; display: flex; flex-direction: column; gap: 1px; }
+.cell .top { display: flex; justify-content: space-between; align-items: center; gap: 4px; margin-bottom: 1px; }
+.cell .hn { font-family: var(--f-mono); font-size: 11px; font-weight: 500; color: var(--muted); min-width: 18px; height: 18px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; }
+.cell.lagna .hn { color: var(--lapis); border-color: var(--lapis); }
+.cell .sn { font-family: "Noto Sans Symbols", "Segoe UI Symbol", "Apple Symbols", serif; font-size: 17px; line-height: 1; color: var(--brass); font-variant-emoji: text; }
+.cell .pl { font-weight: 600; color: var(--lapis); line-height: 1.35; }
+.cell .pl small { font-family: var(--f-mono); font-weight: 400; color: var(--muted); font-size: 10px; }
+.cell.lagna { background: var(--lapis-soft); }
+.cell.lagna::after { content: ""; position: absolute; left: 0; top: 0; width: 22px; height: 22px; background: linear-gradient(135deg, var(--brass) 0 2px, transparent 2px); }
+.center { grid-column: 2 / 4; grid-row: 2 / 4; display: grid; place-content: center; text-align: center; gap: 2px; padding: 8px; border: .5px solid var(--line); }
+.center .nm { font-family: var(--f-display); font-size: 18px; font-weight: 700; }
+.center span { font-size: 11.5px; color: var(--muted); font-family: var(--f-mono); }
+.tablebox { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-size: 11.5px; letter-spacing: .05em; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+tr:last-child td { border-bottom: 0; }
+td.mono { font-family: var(--f-mono); font-size: 12.5px; }
+.R { font-family: var(--f-mono); font-size: 10.5px; color: var(--brass); font-weight: 600; margin-left: 4px; }
+.sys { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12.5px; margin-top: 10px; color: var(--muted); }
+.sys span { border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; }
+.now { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--brass); border-radius: 0 10px 10px 0; padding: 14px 16px; margin-bottom: 14px; }
+.now strong { font-family: var(--f-display); font-size: 19px; }
+.now p { margin: 4px 0 0; color: var(--muted); font-size: 13.5px; }
+details { border-bottom: 1px solid var(--line); }
+details:last-child { border-bottom: 0; }
+summary { cursor: pointer; padding: 10px 14px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary .d { font-family: var(--f-mono); font-size: 12.5px; color: var(--muted); }
+details.cur summary { background: var(--brass-soft); }
+details.cur summary b::after { content: "현재"; margin-left: 8px; font-size: 11px; color: var(--brass); font-weight: 600; }
+.subs { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 2px 16px; padding: 4px 14px 12px; font-size: 13px; }
+.subs div { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; }
+.subs div.cur { color: var(--brass); font-weight: 600; }
+.subs .d { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.note { font-size: 13px; color: var(--muted); max-width: 70ch; }
+.err { color: #b3261e; font-size: 13.5px; }
+.d9info { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; align-self: end; min-width: 0; }
+.d9info p { margin: 0; padding: 12px 14px 0; font-size: 14px; color: var(--ink); max-width: 62ch; }
+.d9info p:last-child { padding-bottom: 14px; }
+.mode { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--surface); margin-top: 14px; }
+.mode button { background: transparent; color: var(--muted); border-radius: 999px; padding: 6px 14px; font-size: 13.5px; font-weight: 600; }
+.mode button[aria-pressed="true"] { background: var(--lapis); color: var(--surface); }
+.area { color: var(--muted); font-size: 12.5px; }
+body.simple .xp { display: none; }
+.chat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; display: grid; }
+.msgs { display: grid; gap: 14px; padding: 16px; max-height: 70vh; overflow-y: auto; }
+.m { max-width: 88%; padding: 10px 14px; border-radius: 12px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere; font-size: 14.5px; line-height: 1.7; }
+.m.u { justify-self: end; background: var(--lapis); color: var(--surface); border-bottom-right-radius: 4px; }
+.m.a { justify-self: start; background: var(--bg); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.m.a.wait { color: var(--muted); font-style: italic; }
+.m.sys { justify-self: center; background: none; color: var(--muted); font-size: 13px; text-align: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 12px; }
+.chip { background: var(--lapis-soft); color: var(--lapis); font-weight: 500; font-size: 13px; padding: 6px 12px; border-radius: 999px; }
+.composer { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+.composer textarea { flex: 1; min-width: 0; resize: none; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; min-height: 44px; }
+.composer button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+.guide { margin-top: 12px; font-size: 13.5px; }
+.guide summary { padding: 6px 0; color: var(--muted); font-weight: 500; justify-content: flex-start; }
+.guide textarea { width: 100%; box-sizing: border-box; min-height: 220px; font-family: var(--f-mono); font-size: 12.5px; line-height: 1.6; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+.guide .row { display: flex; gap: 8px; align-items: center; margin-top: 6px; color: var(--muted); font-size: 12.5px; flex-wrap: wrap; }
+.guide .row button { padding: 5px 10px; font-size: 12.5px; background: transparent; color: var(--lapis); border: 1px solid var(--line); }
+
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="tag">Jyotish · Ernst Wilhelm system</div>
+    <h1>가온 조티샤 차트</h1>
+    <p>트로피컬 라시와 드루바 적도 낙샤트라(은하 중심 = 물라 중앙)로 출생 차트와 빔쇼타리 다샤를 계산합니다. 한국의 역사적 표준시와 서머타임을 자동으로 보정해요.</p>
+    <div class="mode" role="group" aria-label="보기 방식">
+      <button type="button" id="mSimple" aria-pressed="false">쉬운 풀이</button>
+      <button type="button" id="mExpert" aria-pressed="true">전문가용</button>
+    </div>
+  </header>
+
+  <section>
+    <h2>출생 정보</h2>
+    <form id="f">
+      <label>이름<input id="nm" value="예시 차트"></label>
+      <label>생년월일 (양력)<input id="dt" type="date" value="1985-03-14" required></label>
+      <label>태어난 시각<input id="tm" type="time" value="11:30" required></label>
+      <label>출생지<select id="city"></select></label>
+      <label class="coords" id="latL" hidden>위도<input id="lat" type="number" step="0.0001" value="37.5665"></label>
+      <label class="coords" id="lonL" hidden>경도<input id="lon" type="number" step="0.0001" value="126.978"></label>
+      <button type="submit">차트 계산</button>
+    </form>
+    <div id="msg" class="err" role="alert"></div>
+  </section>
+
+  <section id="out">
+    <div class="meta" id="meta"></div>
+    <div class="grid2" style="margin-top:14px">
+      <div>
+        <div class="si" id="si" aria-label="남인도식 라시 차트"></div>
+        <div class="sys xp"><span>라시: 트로피컬</span><span>낙샤트라: 드루바 적도</span><span>하우스: 홀사인</span><span>노드: 트루</span><span>다샤: Saura년</span></div>
+      </div>
+      <div class="tablebox">
+        <table>
+          <thead id="th"></thead>
+          <tbody id="tb"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:28px">
+      <div>
+        <h2 id="d9H">나밤샤 (D9)</h2>
+        <div class="si" id="d9" aria-label="남인도식 나밤샤 차트"></div>
+      </div>
+      <div class="d9info" id="d9info"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 id="dashaH">빔쇼타리 다샤</h2>
+    <div class="now" id="now"></div>
+    <div class="tablebox" id="dasha"></div>
+  </section>
+
+
+  <section class="gaon-ai-soon"><b>가온의 AI 리딩 · 준비 중</b>차트를 바탕으로 대화하며 풀이를 받는 기능은 곧 열려요. 지금은 위의 차트와 표를 먼저 살펴보세요.</section>
+<section hidden style="display:none">
+    <h2>가온의 AI 리딩</h2>
+    <div class="chat">
+      <div class="msgs" id="msgs" aria-live="polite"></div>
+      <div class="chips" id="chips">
+        <button class="chip" type="button">이 차트의 전체적인 성향을 봐 주세요</button>
+        <button class="chip" type="button">지금 다샤 시기는 어떤 흐름인가요?</button>
+        <button class="chip" type="button">일과 진로는 어떻게 보이나요?</button>
+        <button class="chip" type="button">연애와 결혼은 어떤가요?</button>
+      </div>
+      <form class="composer" id="cf">
+        <textarea id="q" rows="1" placeholder="차트에 대해 궁금한 걸 물어보세요"></textarea>
+        <button type="button" class="ghost" id="stop" hidden>멈춤</button>
+        <button type="submit" id="send">보내기</button>
+      </form>
+    </div>
+    <details class="guide">
+      <summary>해석 지침 (AI에게 주는 가온의 리딩 원칙)</summary>
+      <textarea id="rules" aria-label="해석 지침"></textarea>
+      <div class="row"><span>이 브라우저에만 저장돼요. 고친 내용은 다음 질문부터 반영돼요.</span><button type="button" id="resetRules">기본값으로 되돌리기</button></div>
+    </details>
+  </section>
+
+  <p class="note">계산 설정은 빌헬름이 권하는 Kala 설정(트루 노드, 드루바 적도 낙샤트라, Saura년)에 맞췄고, Kala 출력 두 건과 대조해 행성 도수·낙샤트라·파다가 일치하고 다샤 날짜가 하루 안팎으로 맞는 것을 확인했어요. AI 리딩은 이 계산 결과만 근거로 답하도록 되어 있고, 해석 지침을 고치면 말투와 관점을 조정할 수 있어요.</p>
+</div>
+
+<script src="/lib/astronomy.browser.min.js"></script>
+<script>
+// Ernst Wilhelm style chart calc: tropical rasis, sidereal nakshatras (Wilhelm galactic-center ayanamsa)
+(function (root) {
+  const A = root.Astronomy || (typeof require !== 'undefined' ? require('astronomy-engine') : null);
+  const norm = x => ((x % 360) + 360) % 360;
+  const rad = Math.PI / 180;
+
+  function wilhelmAyanamsa(jdUT) {
+    const T = (jdUT - 2451545) / 36525;
+    return 20.03923 + 1.45858425 * T + 0.000499926 * T * T;
+  }
+
+  // Dhruva equatorial nakshatras: right ascension measured from the galactic centre (Sgr A*) set at mid-Mula
+  function equatorialNak(date, trop) {
+    const t = A.MakeTime(date);
+    const R = A.Rotation_EQJ_EQD(t);
+    const gc = A.EquatorFromVector(A.RotateVector(R, A.VectorFromSphere(new A.Spherical(-29.00781, 266.41683, 1), t)));
+    const eqAy = gc.ra * 15 - (18.5 * 360 / 27) + 0.004; // +0.004° calibrated against Kala output
+    const eps = A.e_tilt(t).tobl * rad;
+    const ra = {};
+    ra.Moon = A.EquatorFromVector(A.RotateVector(R, A.GeoMoon(t))).ra * 15;
+    for (const b of ['Sun', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']) ra[b] = A.EquatorFromVector(A.RotateVector(R, A.GeoVector(b, t, true))).ra * 15;
+    for (const p of ['Rahu', 'Ketu']) { const l = trop[p] * rad; ra[p] = norm(Math.atan2(Math.sin(l) * Math.cos(eps), Math.cos(l)) / rad); }
+    const out = {};
+    for (const p of Object.keys(ra)) out[p] = norm(ra[p] - eqAy);
+    return { pos: out, eqAy };
+  }
+
+  function planetLongs(date) {
+    const t = A.MakeTime(date);
+    const out = {};
+    out.Sun = A.SunPosition(t).elon;
+    out.Moon = A.EclipticGeoMoon(t).lon;
+    for (const b of ['Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']) {
+      out[b] = A.Ecliptic(A.GeoVector(b, t, true)).elon;
+    }
+    // True (osculating) node from the Moon's instantaneous orbit plane, ecliptic of date
+    const R = A.Rotation_EQJ_ECT(t);
+    const mp = ms => A.RotateVector(R, A.GeoMoon(A.MakeTime(new Date(date.getTime() + ms))));
+    const a = mp(-600e3), b = mp(600e3), c = mp(0);
+    const v = { x: b.x - a.x, y: b.y - a.y, z: b.z - a.z };
+    const node = norm(Math.atan2(c.y * v.z - c.z * v.y, -(c.z * v.x - c.x * v.z)) / rad);
+    out.Rahu = node; out.Ketu = norm(node + 180);
+    return { longs: out, t };
+  }
+
+  function ascendant(t, lat, lon) {
+    const gast = A.SiderealTime(t); // hours
+    const ramc = norm(gast * 15 + lon) * rad;
+    const eps = A.e_tilt(t).tobl * rad;
+    const asc = Math.atan2(Math.cos(ramc), -(Math.sin(ramc) * Math.cos(eps) + Math.tan(lat * rad) * Math.sin(eps)));
+    return norm(asc / rad);
+  }
+
+  const RASI = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+  const RASI_KO = ['양자리(메샤)','황소자리(브리샤바)','쌍둥이자리(미투나)','게자리(카르카)','사자자리(심하)','처녀자리(칸야)','천칭자리(툴라)','전갈자리(브리쉬치카)','사수자리(다누)','염소자리(마카라)','물병자리(쿰바)','물고기자리(미나)'];
+  const NAK = ['Ashwini','Bharani','Krittika','Rohini','Mrigashira','Ardra','Punarvasu','Pushya','Ashlesha','Magha','Purva Phalguni','Uttara Phalguni','Hasta','Chitra','Swati','Vishakha','Anuradha','Jyeshtha','Mula','Purva Ashadha','Uttara Ashadha','Shravana','Dhanishta','Shatabhisha','Purva Bhadrapada','Uttara Bhadrapada','Revati'];
+  const DASHA_ORDER = ['Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury'];
+  const DASHA_YRS = { Ketu: 7, Venus: 20, Sun: 6, Moon: 10, Mars: 7, Rahu: 18, Jupiter: 16, Saturn: 19, Mercury: 17 };
+  const PL_KO = { Sun:'태양(수리야)', Moon:'달(찬드라)', Mars:'화성(망갈라)', Mercury:'수성(부다)', Jupiter:'목성(구루)', Venus:'금성(슈크라)', Saturn:'토성(샤니)', Rahu:'라후', Ketu:'케투', Asc:'라그나(상승점)' };
+
+  function nakInfo(sid) {
+    const span = 360 / 27;
+    const i = Math.floor(sid / span);
+    const within = sid - i * span;
+    return { index: i, name: NAK[i], pada: Math.floor(within / (span / 4)) + 1, lord: DASHA_ORDER[i % 9], frac: within / span };
+  }
+
+  const YEAR_MS = 365.24219 * 86400000; // Saura year
+  function vimshottari(moonSid, birth) {
+    const n = nakInfo(moonSid);
+    let idx = DASHA_ORDER.indexOf(n.lord);
+    const first = DASHA_YRS[n.lord] * (1 - n.frac);
+    const list = [];
+    let start = new Date(birth.getTime() - DASHA_YRS[n.lord] * n.frac * YEAR_MS);
+    for (let k = 0; k < 9; k++) {
+      const lord = DASHA_ORDER[(idx + k) % 9];
+      const end = new Date(start.getTime() + DASHA_YRS[lord] * YEAR_MS);
+      const subs = [];
+      let s = start;
+      for (let j = 0; j < 9; j++) {
+        const sl = DASHA_ORDER[(DASHA_ORDER.indexOf(lord) + j) % 9];
+        const e = new Date(s.getTime() + DASHA_YRS[lord] * DASHA_YRS[sl] / 120 * YEAR_MS);
+        subs.push({ lord: sl, start: s, end: e }); s = e;
+      }
+      list.push({ lord, start, end, subs });
+      start = end;
+    }
+    return { balanceYears: first, list };
+  }
+
+  function chart(dateUTC, lat, lon) {
+    const { longs, t } = planetLongs(dateUTC);
+    const next = planetLongs(new Date(dateUTC.getTime() + 86400000)).longs;
+    longs.Asc = ascendant(t, lat, lon);
+    const jd = t.ut + 2451545;
+    const ay = wilhelmAyanamsa(jd);
+    const lagnaSign = Math.floor(longs.Asc / 30);
+    const eqn = equatorialNak(dateUTC, longs);
+    const rows = {};
+    for (const [p, trop] of Object.entries(longs)) {
+      const sign = Math.floor(trop / 30);
+      const sid = p === 'Asc' ? norm(trop - ay) : eqn.pos[p];
+      const retro = (p !== 'Asc' && p !== 'Rahu' && p !== 'Ketu' && ((next[p] - trop + 540) % 360 - 180) < 0);
+      const nv = trop / (30 / 9);
+      rows[p] = { retro, d9sign: Math.floor(nv) % 12, d9deg: (nv - Math.floor(nv)) * 30, trop, sign, deg: trop - sign * 30, house: ((sign - lagnaSign + 12) % 12) + 1, sid, nak: nakInfo(sid) };
+    }
+    return { rows, ayanamsa: ay, eqAyanamsa: eqn.eqAy, lagnaSign, dasha: vimshottari(rows.Moon.sid, dateUTC) };
+  }
+
+  const api = { chart, wilhelmAyanamsa, RASI, RASI_KO, NAK, PL_KO, DASHA_ORDER, norm };
+  if (typeof module !== 'undefined') module.exports = api; else root.VedicCalc = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+const V = window.VedicCalc;
+const CITIES = [
+  ['서울', 37.5665, 126.978], ['부산', 35.1796, 129.0756], ['인천', 37.4563, 126.7052], ['대구', 35.8714, 128.6014],
+  ['대전', 36.3504, 127.3845], ['광주', 35.1595, 126.8526], ['울산', 35.5384, 129.3114], ['세종', 36.48, 127.289],
+  ['수원', 37.2636, 127.0286], ['성남', 37.42, 127.1267], ['고양', 37.6584, 126.832], ['용인', 37.2361, 127.2011],
+  ['청주', 36.6424, 127.489], ['천안', 36.8151, 127.1139], ['전주', 35.8242, 127.148], ['포항', 36.019, 129.3435],
+  ['창원', 35.2281, 128.6811], ['진주', 35.18, 128.1076], ['원주', 37.3422, 127.9202], ['춘천', 37.8813, 127.7298],
+  ['강릉', 37.7519, 128.8761], ['목포', 34.8118, 126.3922], ['여수', 34.7604, 127.6622], ['안동', 36.5684, 128.7294],
+  ['경주', 35.8562, 129.2247], ['제주', 33.4996, 126.5312], ['서귀포', 33.2541, 126.5601], ['직접 입력 (위도·경도)', null, null]
+];
+const ABBR = { Asc: '라그나', Sun: '태양', Moon: '달', Mars: '화성', Mercury: '수성', Jupiter: '목성', Venus: '금성', Saturn: '토성', Rahu: '라후', Ketu: '케투' };
+const LORD_KO = { Ketu: '케투', Venus: '금성', Sun: '태양', Moon: '달', Mars: '화성', Rahu: '라후', Jupiter: '목성', Saturn: '토성', Mercury: '수성' };
+const ORDER = ['Asc', 'Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'];
+const SIGN_SHORT = ['양', '황소', '쌍둥이', '게', '사자', '처녀', '천칭', '전갈', '사수', '염소', '물병', '물고기'];
+const SIGN_GLYPH = ['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'].map(g => g + '\uFE0E');
+// South Indian fixed sign positions: [row, col]
+const SI_POS = { 11: [0, 0], 0: [0, 1], 1: [0, 2], 2: [0, 3], 10: [1, 0], 3: [1, 3], 9: [2, 0], 4: [2, 3], 8: [3, 0], 7: [3, 1], 6: [3, 2], 5: [3, 3] };
+
+const $ = id => document.getElementById(id);
+let mode = 'expert';
+try { mode = localStorage.getItem('gaon-mode') || 'expert'; } catch (e) {}
+const HOUSE_AREA = ['나 자신·성격·몸', '돈·가족·말', '형제·용기·소통', '집·어머니·마음의 안정', '연애·자녀·창의성', '일상 업무·건강 관리·경쟁', '배우자·동업자', '큰 변화·숨은 일·공동 재산', '행운·스승·신념·여행', '직업·사회적 위치', '수입·인맥·소망', '휴식·해외·지출·영성'];
+const PL_SIMPLE = { Asc: '상승궁(나를 나타내는 자리)', Sun: '태양', Moon: '달', Mars: '화성', Mercury: '수성', Jupiter: '목성', Venus: '금성', Saturn: '토성', Rahu: '라후(용의 머리)', Ketu: '케투(용의 꼬리)' };
+let lastRender = null;
+function setMode(m) {
+  mode = m; try { localStorage.setItem('gaon-mode', m); } catch (e) {}
+  document.body.classList.toggle('simple', m === 'simple');
+  $('mSimple').setAttribute('aria-pressed', m === 'simple'); $('mExpert').setAttribute('aria-pressed', m === 'expert');
+  if (lastRender) { render(); }
+}
+const sel = $('city');
+CITIES.forEach((c, i) => { const o = document.createElement('option'); o.value = i; o.textContent = c[0]; sel.appendChild(o); });
+sel.addEventListener('change', () => { const custom = CITIES[sel.value][1] === null; $('latL').hidden = !custom; $('lonL').hidden = !custom; });
+
+const dms = d => { const deg = Math.floor(d); const m = Math.floor((d - deg) * 60); return `${deg}°${String(m).padStart(2, '0')}′`; };
+const ymd = d => `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+
+// Seoul wall time -> UTC using the browser's tz database (handles 1954–61 UTC+8:30 and summer time years)
+function seoulOffsetMin(utcMs) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Seoul', hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' })
+    .formatToParts(new Date(utcMs)).map(x => [x.type, x.value]));
+  const asUTC = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+  return Math.round((asUTC - Math.floor(utcMs / 60000) * 60000) / 60000);
+}
+function seoulToUTC(y, mo, d, h, mi) {
+  const wall = Date.UTC(y, mo - 1, d, h, mi);
+  let utc = wall - 9 * 3600000;
+  for (let i = 0; i < 3; i++) utc = wall - seoulOffsetMin(utc) * 60000;
+  return { date: new Date(utc), offset: seoulOffsetMin(utc) };
+}
+const fmtOff = m => `UTC+${Math.floor(m / 60)}${m % 60 ? ':' + String(m % 60).padStart(2, '0') : ''}`;
+
+function drawSI(box, signOf, degOf, lagnaSign, centerHTML, ch) {
+  box.innerHTML = '';
+  const bySign = {}; ORDER.forEach(p => { (bySign[signOf(p)] ||= []).push(p); });
+  for (let s = 0; s < 12; s++) {
+    const [r, col] = SI_POS[s];
+    const el = document.createElement('div');
+    el.className = 'cell' + (s === lagnaSign ? ' lagna' : '');
+    el.style.gridRow = r + 1; el.style.gridColumn = col + 1;
+    const hn = ((s - lagnaSign + 12) % 12) + 1;
+    el.innerHTML = `<div class="top"><span class="sn" title="${SIGN_SHORT[s]}자리" aria-label="${SIGN_SHORT[s]}자리">${SIGN_GLYPH[s]}</span><span class="hn" title="${hn}하우스" aria-label="${hn}하우스">${hn}</span></div>` + (bySign[s] || []).map(p =>
+      `<span class="pl">${ABBR[p]}${ch.rows[p].retro ? '<span class="R">R</span>' : ''} <small>${Math.floor(degOf(p))}°</small></span>`).join('');
+    box.appendChild(el);
+  }
+  const ctr = document.createElement('div'); ctr.className = 'center'; ctr.innerHTML = centerHTML; box.appendChild(ctr);
+}
+
+function render() {
+  $('msg').textContent = '';
+  const [y, mo, d] = $('dt').value.split('-').map(Number);
+  const [h, mi] = $('tm').value.split(':').map(Number);
+  if (!y || isNaN(h)) { $('msg').textContent = '생년월일과 태어난 시각을 모두 입력해 주세요.'; return; }
+  const c = CITIES[sel.value];
+  const lat = c[1] ?? parseFloat($('lat').value), lon = c[2] ?? parseFloat($('lon').value);
+  if (isNaN(lat) || isNaN(lon)) { $('msg').textContent = '위도와 경도를 숫자로 입력해 주세요.'; return; }
+  const { date, offset } = seoulToUTC(y, mo, d, h, mi);
+  const ch = V.chart(date, lat, lon);
+  const name = $('nm').value.trim() || '이름 없음';
+  const tzNote = offset === 540 ? '' : (offset === 510 ? ' · 당시 표준시 UTC+8:30 적용' : ' · 서머타임 적용');
+  $('meta').innerHTML = (name === '예시 차트' ? '<span class="example">예시 데이터</span>' : '') +
+    `<span><b>${name}</b></span><span>${y}.${mo}.${d} ${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')} (${fmtOff(offset)}${tzNote})</span>` +
+    `<span>${c[0].startsWith('직접') ? '' : c[0] + ' · '}${lat.toFixed(2)}N ${lon.toFixed(2)}E</span><span>적도 아야남샤 ${dms(ch.eqAyanamsa)}</span>`;
+
+  // South Indian charts (D1 and D9)
+  const S0 = mode === 'simple';
+  drawSI($('si'), p => ch.rows[p].sign, p => ch.rows[p].deg, ch.lagnaSign,
+    `<div class="nm">${name}</div><span>라그나 ${V.RASI_KO[ch.lagnaSign].split('(')[0]}</span><span>달 낙샤트라 ${ch.rows.Moon.nak.name}</span>`, ch);
+  const d9Lagna = ch.rows.Asc.d9sign;
+  drawSI($('d9'), p => ch.rows[p].d9sign, p => ch.rows[p].d9deg, d9Lagna,
+    `<div class="nm">D9</div><span>나밤샤 라그나 ${V.RASI_KO[d9Lagna].split('(')[0]}</span>`, ch);
+  const vargo = ORDER.filter(p => ch.rows[p].sign === ch.rows[p].d9sign);
+  $('d9H').textContent = S0 ? '결혼·내면의 차트 (나밤샤)' : '나밤샤 (D9)';
+  $('d9info').innerHTML = S0
+    ? `<p>나밤샤는 출생 차트의 각 자리를 아홉으로 나눠 본 차트예요. 배우자와 결혼 생활, 그리고 나이 들수록 드러나는 내면의 힘을 볼 때 함께 봐요.</p>` +
+      (vargo.length ? `<p><b>두 차트에서 같은 별자리에 있는 행성:</b> ${vargo.map(p => PL_SIMPLE[p]).join(', ')}. 이런 행성은 힘이 안정적이고 그 성질이 뚜렷하게 드러나요.</p>` : '')
+    : `<table><thead><tr><th>행성</th><th>D9 라시</th><th>도수</th><th>D9 하우스</th></tr></thead><tbody>` +
+      ORDER.map(p => { const r = ch.rows[p]; return `<tr><td>${V.PL_KO[p]}${r.sign === r.d9sign ? '<span class="R">VG</span>' : ''}</td><td>${V.RASI_KO[r.d9sign]}</td><td class="mono">${dms(r.d9deg)}</td><td class="mono">${((r.d9sign - d9Lagna + 12) % 12) + 1}</td></tr>`; }).join('') +
+      `</tbody></table><p class="area" style="padding:8px 10px 10px;margin:0">VG = 바르곳타마(D1과 D9의 라시가 같음)</p>`;
+
+  // Table
+  const S = mode === 'simple';
+  $('th').innerHTML = S ? '<tr><th>행성</th><th>별자리</th><th>삶의 영역</th><th>탄생 별(낙샤트라)</th></tr>'
+    : '<tr><th>행성</th><th>라시</th><th>도수</th><th>하우스</th><th>낙샤트라 · 파다</th><th>로드</th></tr>';
+  $('tb').innerHTML = ORDER.map(p => { const r = ch.rows[p];
+    if (S) return `<tr><td>${PL_SIMPLE[p]}${r.retro ? '<span class="R">역행</span>' : ''}</td><td>${V.RASI_KO[r.sign].split('(')[0]}</td><td>${r.house}번째 <span class="area">${HOUSE_AREA[r.house - 1]}</span></td><td>${r.nak.name}</td></tr>`;
+    return `<tr><td>${V.PL_KO[p]}${r.retro ? '<span class="R">R</span>' : ''}</td><td>${V.RASI_KO[r.sign]}</td><td class="mono">${dms(r.deg)}</td><td class="mono">${r.house}</td><td>${r.nak.name} · ${r.nak.pada}</td><td>${LORD_KO[r.nak.lord]}</td></tr>`; }).join('');
+
+  // Dasha
+  const now = new Date();
+  const md = ch.dasha.list.find(x => x.start <= now && now < x.end);
+  const ad = md && md.subs.find(x => x.start <= now && now < x.end);
+  $('dashaH').textContent = S ? '인생의 시기 흐름' : '빔쇼타리 다샤';
+  if (!md) $('now').innerHTML = `<strong>현재 다샤가 계산 범위(120년) 밖이에요.</strong>`;
+  else $('now').innerHTML =  S
+    ? `<strong>지금은 ${LORD_KO[md.lord]}의 큰 시기, 그 안의 ${LORD_KO[ad.lord]} 작은 시기예요</strong><p>큰 시기 ${ymd(md.start)} – ${ymd(md.end)}, 작은 시기 ${ymd(ad.start)} – ${ymd(ad.end)}. 사주의 대운처럼, 각 행성이 몇 년씩 돌아가며 삶의 흐름을 이끌어요.</p>`
+    : `<strong>${LORD_KO[md.lord]} 마하다샤 · ${LORD_KO[ad.lord]} 안타르다샤</strong><p>마하다샤 ${ymd(md.start)} – ${ymd(md.end)}, 안타르다샤 ${ymd(ad.start)} – ${ymd(ad.end)}. 출생 시 남은 첫 다샤 ${ch.dasha.balanceYears.toFixed(2)}년.</p>`
+  $('dasha').innerHTML = ch.dasha.list.map(m => {
+    const cur = m === md;
+    return `<details${cur ? ' class="cur" open' : ''}><summary><b>${LORD_KO[m.lord]} ${S ? '시기' : '마하다샤'}</b><span class="d">${ymd(m.start)} – ${ymd(m.end)}</span></summary><div class="subs">` +
+      m.subs.map(s => `<div${s === ad ? ' class="cur"' : ''}><span>${LORD_KO[m.lord]}–${LORD_KO[s.lord]}</span><span class="d">${ymd(s.start)}</span></div>`).join('') + '</div></details>';
+  }).join('');
+  natal = { lat, lon, lagnaSign: ch.lagnaSign, moonSign: ch.rows.Moon.sign };
+  chartText = buildChartText(ch, `${name}, ${y}.${mo}.${d} ${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')} (${fmtOff(offset)}), ${c[0]}`);
+  if (!lastRender || lastRender !== chartText) resetChat(name);
+  lastRender = chartText;
+}
+
+
+// ---------- AI reading ----------
+const DEFAULT_RULES = `너는 '가온'이라는 이름으로 상담하는 베딕 점성술(조티샤) 리더다. 한국어로, 따뜻하지만 군더더기 없이 말한다.
+
+[체계]
+- 에른스트 빌헬름 방식을 따른다: 라시와 하우스는 트로피컬 홀사인, 낙샤트라와 빔쇼타리 다샤는 드루바 적도 낙샤트라 기준.
+- 아래 [차트 데이터]에 있는 값만 근거로 삼는다. 데이터에 없는 행성 위치, 각도, 요가를 지어내지 않는다. 필요한 값이 없으면 없다고 말한다.
+
+[해석 방식]
+- 행성의 힘과 결혼·배우자 질문은 나밤샤(D9)를 함께 본다. 바르곳타마 행성은 힘이 안정적인 것으로 본다.
+- 하우스 로드와 그 로드가 놓인 하우스, 행성의 품위(고양·자기 별자리·약함), 낙샤트라와 그 로드를 연결해서 읽는다.
+- 시기 질문은 현재 마하다샤·안타르다샤 로드가 차트에서 무엇을 다스리고 어디에 놓였는지로 설명한다.
+- 다샤를 먼저 보고, 트랜짓(특히 목성·토성·라후·케투가 출생 라그나와 달에서 몇 번째 하우스를 지나는지)으로 시기를 좁힌다. 오늘의 트랜짓과 향후 3년 별자리 이동은 [차트 데이터]에 있다. 다른 날짜가 필요하면 getTransits 도구가 있을 때 그것으로 계산한다.
+- 근거가 되는 배치를 한두 개 짚어 주되, 전문 용어는 쉬운 말로 풀어 준다. 사주에 익숙한 사람에게 하듯 자연스럽게.
+- 답은 휴대폰 한두 화면 분량. 핵심부터 말하고, 마지막에 더 깊이 볼 만한 질문을 하나 제안한다.
+
+[하지 않는 것]
+- 수명, 사망, 사고, 질병 진단, 임신 여부를 예언하지 않는다. 건강·법률·투자 결정은 전문가 상담을 권한다.
+- 겁을 주거나 운명을 단정하지 않는다. 경향과 시기로 말한다.`;
+
+let rules = DEFAULT_RULES;
+try { const s = localStorage.getItem('gaon-rules'); if (s) rules = s; } catch (e) {}
+const rulesEl = $('rules'); rulesEl.value = rules;
+rulesEl.addEventListener('input', () => { rules = rulesEl.value; try { localStorage.setItem('gaon-rules', rules); } catch (e) {} });
+$('resetRules').addEventListener('click', () => { rules = DEFAULT_RULES; rulesEl.value = rules; try { localStorage.removeItem('gaon-rules'); } catch (e) {} });
+
+const SIGN_LORD = ['Mars','Venus','Mercury','Moon','Sun','Mercury','Venus','Mars','Jupiter','Saturn','Saturn','Jupiter'];
+let chartText = '', turns = [], ctl = null, sampleFn = undefined, natal = null;
+
+function buildChartText(ch, meta) {
+  const L = [];
+  L.push(`[차트 데이터] ${meta}`);
+  L.push(`라그나: ${V.RASI_KO[ch.lagnaSign]} ${dms(ch.rows.Asc.deg)}, 낙샤트라 ${ch.rows.Asc.nak.name} ${ch.rows.Asc.nak.pada}파다`);
+  L.push('행성 (트로피컬 라시 / 홀사인 하우스 / 적도 낙샤트라·파다·로드):');
+  for (const p of ORDER.slice(1)) { const r = ch.rows[p];
+    L.push(`- ${V.PL_KO[p]}${r.retro ? ' (역행)' : ''}: ${V.RASI_KO[r.sign]} ${dms(r.deg)}, ${r.house}하우스, ${r.nak.name} ${r.nak.pada}파다 (로드 ${LORD_KO[r.nak.lord]})`); }
+  const d9L = ch.rows.Asc.d9sign;
+  L.push(`나밤샤(D9): 라그나 ${V.RASI_KO[d9L]}`);
+  for (const p of ORDER.slice(1)) { const r = ch.rows[p];
+    L.push(`- ${V.PL_KO[p]}: D9 ${V.RASI_KO[r.d9sign]} ${dms(r.d9deg)}, D9 ${((r.d9sign - d9L + 12) % 12) + 1}하우스${r.sign === r.d9sign ? ' (바르곳타마)' : ''}`); }
+  L.push('하우스 로드 (하우스: 별자리 → 로드가 놓인 하우스):');
+  for (let h = 1; h <= 12; h++) { const s = (ch.lagnaSign + h - 1) % 12, lord = SIGN_LORD[s];
+    L.push(`- ${h}하우스 ${SIGN_SHORT[s]}자리 → 로드 ${LORD_KO[lord]}, ${ch.rows[lord].house}하우스`); }
+  const now = new Date(); const md = ch.dasha.list.find(x => x.start <= now && now < x.end);
+  if (md) { const i = md.subs.findIndex(x => x.start <= now && now < x.end);
+    L.push(`오늘 날짜: ${ymd(now)}`);
+    L.push(`현재 마하다샤: ${LORD_KO[md.lord]} (${ymd(md.start)}–${ymd(md.end)})`);
+    L.push('안타르다샤: ' + md.subs.map((s, j) => `${LORD_KO[s.lord]} ${ymd(s.start)}${j === i ? '(현재)' : ''}`).join(', ')); }
+  L.push('마하다샤 순서: ' + ch.dasha.list.map(m => `${LORD_KO[m.lord]} ${ymd(m.start)}–${ymd(m.end)}`).join(', '));
+  const today = new Date();
+  L.push('', transitText(today), '', ingressText(today));
+  return L.join('\n');
+}
+
+
+function transitText(date) {
+  const tr = V.chart(date, natal.lat, natal.lon);
+  const L = [`[트랜짓 ${ymd(date)}] (하우스는 출생 라그나 기준 / 괄호는 출생 달 기준)`];
+  for (const p of ORDER.slice(1)) { const r = tr.rows[p];
+    const fromMoon = ((r.sign - natal.moonSign + 12) % 12) + 1;
+    L.push(`- ${V.PL_KO[p]}${r.retro ? ' (역행)' : ''}: ${V.RASI_KO[r.sign]} ${dms(r.deg)}, ${((r.sign - natal.lagnaSign + 12) % 12) + 1}하우스 (달에서 ${fromMoon}번째), ${r.nak.name} ${r.nak.pada}파다`); }
+  return L.join('\n');
+}
+// slow planets: sign changes over the next 3 years
+function ingressText(from) {
+  const L = ['[느린 행성 별자리 이동, 향후 3년]'];
+  for (const p of ['Jupiter', 'Saturn', 'Rahu']) {
+    let prev = V.chart(from, natal.lat, natal.lon).rows[p].sign; const ev = [];
+    for (let d = 7; d <= 3 * 366; d += 7) { const dt = new Date(from.getTime() + d * 864e5); const s = V.chart(dt, natal.lat, natal.lon).rows[p].sign;
+      if (s !== prev) { ev.push(`${ymd(dt)}경 ${SIGN_SHORT[s]}자리(${((s - natal.lagnaSign + 12) % 12) + 1}하우스)`); prev = s; } }
+    L.push(`- ${V.PL_KO[p]}: ` + (ev.length ? ev.join(', ') : '이동 없음'));
+  }
+  return L.join('\n');
+}
+const TRANSIT_TOOL = { name: 'getTransits', description: '특정 날짜의 행성 트랜짓 위치(트로피컬 라시, 출생 라그나·달 기준 하우스, 적도 낙샤트라, 역행)를 계산해 돌려준다. 미래나 과거 특정 시기를 예측·확인할 때 사용한다.',
+  inputSchema: { type: 'object', properties: { date: { type: 'string', description: 'YYYY-MM-DD' } }, required: ['date'] },
+  execute: ({ date }) => { const m = String(date).match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) throw new Error('date는 YYYY-MM-DD 형식이어야 해요');
+    return transitText(new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], 3))); } };
+
+const MODE_RULES = {
+  simple: `[말투: 일반인용]
+- 산스크리트어 용어(라그나, 다샤, 낙샤트라, 하우스 번호, 로드 등)를 쓰지 않는다. 꼭 필요하면 한 번만 쉬운 말과 함께 괄호로 넣는다.
+- 하우스는 '삶의 영역'(예: 10번째 영역 = 직업과 사회적 위치)으로, 다샤는 '큰 시기·작은 시기'로, 상승궁은 '나를 나타내는 자리'로 말한다.
+- 근거는 "지금 목성이 이끄는 시기라서"처럼 한 문장으로만 짚고, 생활 속 예시로 풀어 준다.`,
+  expert: `[말투: 전문가용]
+- 조티샤 용어를 그대로 쓴다. 근거가 되는 배치(별자리와 도수, 하우스, 하우스 로드, 낙샤트라·파다·로드, 품위, 역행, 다샤 로드의 관계, 트랜짓)를 구체적으로 인용한다.
+- 해석 논리를 단계별로 보여 주고, 해석이 갈릴 수 있는 부분은 그렇다고 말한다.`
+};
+const msgs = $('msgs');
+function addMsg(cls, text) { const d = document.createElement('div'); d.className = 'm ' + cls; d.textContent = text; msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight; return d; }
+function resetChat(name) { turns = []; ctl?.abort(); msgs.innerHTML = ''; addMsg('sys', `${name}님의 차트가 준비됐어요. 아래에서 질문을 골라 보거나 직접 물어보세요.`); $('chips').hidden = false; }
+const ERR = { not_granted: 'AI 리딩 사용이 허용되지 않았어요. 이 페이지에서 Claude 사용을 허용하면 리딩을 받을 수 있어요.', sampling_disabled: '이 계정에서는 AI 리딩을 쓸 수 없어요.',
+  rate_limited: '요청이 많아 잠시 쉬어야 해요. 조금 뒤에 다시 물어보세요.', session_expired: '다시 로그인한 뒤 물어보세요.', refused: '이 질문에는 답할 수 없어요. 다르게 물어봐 주세요.',
+  prompt_too_large: '대화가 너무 길어졌어요. 차트를 다시 계산하면 새 대화로 시작해요.' };
+
+async function ask(q) {
+  q = q.trim(); if (!q || ctl) return;
+  if (sampleFn === undefined) sampleFn = await window.claude?.use?.('sample') ?? null;
+  if (!sampleFn) { addMsg('sys', 'AI 리딩은 Claude 앱에서 이 페이지를 열었을 때 쓸 수 있어요.'); return; }
+  $('chips').hidden = true; addMsg('u', q); $('q').value = '';
+  turns.push({ role: 'user', content: q });
+  const bubble = addMsg('a wait', '차트를 읽는 중이에요…');
+  ctl = new AbortController(); $('stop').hidden = false; $('send').disabled = true;
+  const history = turns.slice(-12);
+  try {
+    if (sampleFn.toolsOk === undefined) { const lim = await sampleFn.limits?.().catch(() => null); sampleFn.toolsOk = !!lim?.tools; }
+    const { text } = await sampleFn([{ role: 'user', content: rules + '\n\n' + MODE_RULES[mode] + '\n\n' + chartText + '\n\n위 지침과 차트 데이터로만 답해 줘. 이제 상담을 시작한다.' }, ...history],
+      { cache: false, signal: ctl.signal, ...(sampleFn.toolsOk ? { tools: [TRANSIT_TOOL] } : {}), onText: ({ text }) => { bubble.classList.remove('wait'); bubble.textContent = text; msgs.scrollTop = msgs.scrollHeight; } });
+    turns.push({ role: 'assistant', content: text });
+  } catch (e) {
+    turns.pop();
+    if (e.text) { bubble.classList.remove('wait'); bubble.textContent = e.text; turns.push({ role: 'user', content: q }, { role: 'assistant', content: e.text }); }
+    else bubble.remove();
+    if (e.code !== 'cancelled') addMsg('sys', ERR[e.code] || '연결이 잠시 끊겼어요. 다시 보내 주세요.');
+  } finally { ctl = null; $('stop').hidden = true; $('send').disabled = false; }
+}
+$('cf').addEventListener('submit', e => { e.preventDefault(); ask($('q').value); });
+$('q').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask($('q').value); } });
+$('stop').addEventListener('click', () => ctl?.abort());
+document.querySelectorAll('#chips .chip').forEach(b => b.addEventListener('click', () => ask(b.textContent)));
+
+$('mSimple').addEventListener('click', () => setMode('simple'));
+$('mExpert').addEventListener('click', () => setMode('expert'));
+document.body.classList.toggle('simple', mode === 'simple');
+$('mSimple').setAttribute('aria-pressed', mode === 'simple'); $('mExpert').setAttribute('aria-pressed', mode === 'expert');
+$('f').addEventListener('submit', e => { e.preventDefault(); render(); });
+if (window.Astronomy) render(); else $('msg').textContent = '천문 계산 라이브러리를 불러오지 못했어요. 새로고침해 주세요.';
+</script>
+
+
+<footer class="gaon-foot">© 가온 · <a href="https://www.instagram.com/tantan.life/" target="_blank" rel="noopener">Instagram @tantan.life</a> · <a href="https://the-path-of-life.tistory.com/" target="_blank" rel="noopener">Blog</a><br>입력한 정보는 이 기기 안에만 저장되고 서버로 보내지지 않아요.</footer>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))}</script>
+</body></html>

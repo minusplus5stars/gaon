@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta name="description" content="오행 명상 진단 · 가온">
+<meta name="theme-color" content="#1C2742">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="가온">
+<style>
+.gaon-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1040px;margin:0 auto;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));
+  font:500 13px "IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+.gaon-nav a{color:inherit;opacity:.7;text-decoration:none}
+.gaon-nav a:hover{opacity:1}
+.gaon-foot{max-width:1040px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-right,0px)) max(28px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  font:12px "IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;opacity:.7;text-align:center}
+.gaon-foot a{color:inherit}
+.gaon-ai-soon{border:1px dashed currentColor;border-radius:8px;padding:14px 16px;opacity:.75;font-size:14px;line-height:1.6}
+.gaon-ai-soon b{display:block;font-size:15px;margin-bottom:2px}
+</style>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오행 명상 진단</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* 레이아웃: 좁은 단일 컬럼 · 원국 4기둥 → 오행 막대 → 처방 명상 + 호흡 타이머 → 상담 안내 */
+:root{
+  --bg:#EEF1EF; --surface:#FFFFFF; --ink:#1D2A2B; --muted:#5E6B6A; --line:#D5DCD9; --accent:#2F5D62;
+  --wood:#3E8E5E; --fire:#C8473B; --earth:#B08A3E; --metal:#7C8791; --water:#2C4A7A;
+  --display:"Gowun Batang","Nanum Myeongjo",serif; --body:"Noto Sans KR","Apple SD Gothic Neo",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121A1C; --surface:#1B2528; --ink:#E6ECEA; --muted:#9AA8A6; --line:#2C3A3D; --accent:#7FB3B8;
+  --wood:#6CC08A; --fire:#F0806F; --earth:#D9B464; --metal:#B4BEC6; --water:#7FA2DE; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#121A1C; --surface:#1B2528; --ink:#E6ECEA; --muted:#9AA8A6; --line:#2C3A3D; --accent:#7FB3B8;
+  --wood:#6CC08A; --fire:#F0806F; --earth:#D9B464; --metal:#B4BEC6; --water:#7FA2DE; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.65;font-size:16px}
+.wrap{max-width:720px;margin:0 auto;padding:32px 20px 64px;display:grid;gap:20px}
+header{display:grid;gap:6px}
+.brand{font-size:13px;letter-spacing:.12em;color:var(--accent);font-weight:700}
+h1{font-family:var(--display);font-size:clamp(28px,6vw,38px);line-height:1.25;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-size:22px;margin:0 0 4px;text-wrap:balance}
+h3{font-size:15px;margin:0;color:var(--muted);font-weight:500}
+.lead{color:var(--muted);margin:0;max-width:60ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
+form{display:grid;gap:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:grid;gap:4px;font-size:14px;color:var(--muted)}
+input[type=date],input[type=time]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+.checks{display:flex;flex-wrap:wrap;gap:8px 18px}
+.checks label{display:flex;align-items:center;gap:6px;color:var(--ink)}
+button{font:inherit;cursor:pointer;border-radius:999px;padding:11px 20px;border:1px solid var(--accent);background:var(--accent);color:var(--surface);font-weight:700}
+button.ghost{background:transparent;color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:999px;background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.pillar{display:grid;gap:4px;text-align:center}
+.pillar .lab{font-size:12px;color:var(--muted)}
+.ch{font-family:var(--display);font-size:34px;line-height:1.2;padding:8px 0;border-radius:10px;border:1px solid var(--line);display:grid}
+.ch small{font-family:var(--body);font-size:11px;opacity:.85}
+.pillar.empty .ch{color:var(--muted);border-style:dashed;font-size:16px;place-items:center;min-height:68px}
+.bars{display:grid;gap:10px;margin-top:16px}
+.bar{display:grid;grid-template-columns:112px 1fr 64px;align-items:center;gap:10px;font-size:14px}
+.track{height:12px;background:var(--bg);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+.fill{height:100%;border-radius:6px;transition:width .6s ease}
+.num{font-variant-numeric:tabular-nums;text-align:right;color:var(--muted)}
+.chip{font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px;margin-left:6px;color:var(--surface)}
+.rx{border-left:5px solid var(--el);}
+.rx .el{color:var(--el);font-weight:700}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px}
+ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.breath{display:grid;justify-items:center;gap:12px;margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+.orb{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--el) 18%,transparent);border:2px solid var(--el);transform:scale(.62);transition-property:transform;transition-timing-function:ease-in-out}
+.orb span{font-weight:700;font-size:17px;color:var(--ink);transform:scale(1.4)}
+.timer-info{font-variant-numeric:tabular-nums;color:var(--muted);font-size:14px}
+.btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.note{font-size:13px;color:var(--muted)}
+.cta{display:grid;gap:10px}
+.cta ul{margin:0;padding-left:18px}
+.toast{min-height:1.4em;font-size:13px;color:var(--accent)}
+select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.jj{font-size:12px;color:var(--muted);display:flex;justify-content:center;gap:4px;flex-wrap:wrap}
+.jj b{color:var(--ink);border-bottom:2px solid var(--accent)}
+.info{display:grid;gap:4px;margin:14px 0 0;padding:12px 14px;background:var(--bg);border-radius:10px;font-size:14px}
+.info div{display:grid;grid-template-columns:84px 1fr;gap:8px}
+.info dt{color:var(--muted)}
+.info dd{margin:0;font-variant-numeric:tabular-nums}
+.combos{display:grid;gap:8px;margin-top:12px}
+.combo{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:10px}
+.combo .big{font-family:var(--display);font-size:20px}
+.cmp{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.gauge{height:10px;border-radius:5px;background:var(--bg);border:1px solid var(--line);position:relative;margin:10px 0 4px}
+.gauge i{position:absolute;top:-4px;width:3px;height:16px;background:var(--ink);border-radius:2px}
+.gauge::after{content:"";position:absolute;left:50%;top:-2px;height:12px;border-left:1px dashed var(--muted)}
+details summary{cursor:pointer;font-weight:700}
+details ul{margin:8px 0 0;padding-left:18px;font-size:14px;color:var(--muted);display:grid;gap:4px}
+@media (max-width:560px){.row3{grid-template-columns:1fr}}
+.err{color:var(--fire);font-size:14px}
+@media (max-width:420px){.ch{font-size:26px}.row{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.orb,.fill{transition:none!important}}
+</style>
+<script src="/lib/astronomy.browser.min.js"></script>
+</head>
+<body>
+<nav class="gaon-nav"><a href="/">← 가온 홈</a><span style="opacity:.55">가온</span></nav>
+
+<main class="wrap">
+  <header>
+    <div class="brand">가온 · 오행 명상</div>
+    <h1>내 사주에 부족한 기운을 채우는 명상</h1>
+    <p class="lead">태어난 날과 시간, 태어난 곳으로 사주를 세우고 월령·지장간·합까지 따져 다섯 기운의 세력을 봐요. 가장 약한 기운을 채우는 명상과 호흡을 바로 해볼 수 있어요.</p>
+  </header>
+
+  <section class="card" aria-labelledby="f-title">
+    <h2 id="f-title">생년월일시 입력</h2>
+    <form id="form">
+      <div class="row">
+        <label for="bdate">생년월일 (양력)<input type="date" id="bdate" value="1990-05-15" min="1900-01-01" max="2099-12-31" required></label>
+        <label for="btime">태어난 시각 (당시 시계 기준)<input type="time" id="btime" value="10:30"></label>
+      </div>
+      <div class="row3">
+        <label for="place">태어난 곳
+          <select id="place">
+            <option value="126.98">서울</option><option value="126.71">인천</option><option value="127.01">수원</option>
+            <option value="127.73">춘천</option><option value="128.90">강릉</option><option value="127.49">청주</option>
+            <option value="127.38">대전</option><option value="127.15">전주</option><option value="126.85">광주</option>
+            <option value="126.39">목포</option><option value="128.60">대구</option><option value="129.36">포항</option>
+            <option value="129.31">울산</option><option value="129.08">부산</option><option value="128.68">창원</option>
+            <option value="126.53">제주</option>
+          </select></label>
+        <label for="tmode">시각 보정
+          <select id="tmode">
+            <option value="true">진태양시 (경도+균시차)</option>
+            <option value="mean">평균태양시 (경도만)</option>
+            <option value="none">보정 안 함 (UTC+9)</option>
+          </select></label>
+        <label for="jasi">자시(23~1시) 기준
+          <select id="jasi">
+            <option value="23">23시에 날 바뀜</option>
+            <option value="00">야자시·조자시 구분</option>
+          </select></label>
+      </div>
+      <div class="checks">
+        <label for="unknown"><input type="checkbox" id="unknown"> 태어난 시각을 몰라요</label>
+      </div>
+      <div><button type="submit" id="go">오행 진단하기</button></div>
+      <p class="note">서머타임(1948~60년, 1987~88년)과 1954~61년 표준시(UTC+8:30)는 자동으로 반영해요. 입력한 정보는 이 브라우저 안에서만 계산하고 어디에도 보내지 않아요.</p>
+      <p class="err" id="err" role="alert" style="margin:0"></p>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="r-title">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
+      <h2 id="r-title">나의 사주 원국</h2>
+      <span class="tag" id="sample-tag">예시: 1990년 5월 15일 10:30 서울</span>
+    </div>
+    <div class="pillars" id="pillars"></div>
+    <dl class="info" id="info"></dl>
+  </section>
+
+  <section class="card" aria-labelledby="s-title">
+    <h2 id="s-title">오행 세력</h2>
+    <p class="note" style="margin:0">월지 30점, 일지·시지 15점, 나머지 10점을 지장간 비율로 나누고, 사령 천간과 합을 반영했어요. 오른쪽 작은 숫자는 글자 개수예요.</p>
+    <div class="bars" id="bars" aria-label="오행 세력 분포"></div>
+    <div class="combos" id="combos"></div>
+    <div style="margin-top:16px">
+      <h3>일간 강약 (참고)</h3>
+      <div class="gauge" aria-hidden="true"><i id="gauge-pin"></i></div>
+      <p id="strength" style="margin:0;font-size:15px"></p>
+    </div>
+    <p class="lead" id="summary" style="margin-top:14px"></p>
+  </section>
+
+  <section class="card rx" id="rx" aria-labelledby="rx-title">
+    <h3>채워야 할 기운</h3>
+    <h2 id="rx-title"></h2>
+    <p id="rx-desc" style="margin:0"></p>
+    <div class="meta" id="rx-meta"></div>
+    <ol id="rx-steps"></ol>
+    <div class="breath">
+      <div class="orb" id="orb"><span id="phase">준비</span></div>
+      <div class="timer-info" id="timer-info"></div>
+      <div class="btns">
+        <button type="button" id="start">호흡 시작</button>
+        <button type="button" class="ghost" id="stop">멈추기</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="excess" aria-labelledby="ex-title">
+    <h3>넘치는 기운 다스리기</h3>
+    <h2 id="ex-title"></h2>
+    <p id="ex-desc" style="margin:0"></p>
+  </section>
+
+  <section class="card">
+    <details>
+      <summary>계산 방식 자세히 보기</summary>
+      <ul>
+        <li>절기: 태양의 겉보기 황경을 천문 계산(VSOP87 기반)으로 구해 12절의 절입 시각을 분 단위로 찾아요. 년주는 입춘(315°), 월주는 각 절입 시각을 기준으로 바꿔요.</li>
+        <li>시각: 입력한 시계 시각을 당시 한국 법정시(서머타임 포함)로 보고 세계시로 바꾼 뒤, 태어난 곳의 경도와 균시차로 진태양시를 구해 일주·시주를 정해요.</li>
+        <li>점수: 천간 각 10점, 년지 10점, 월지 30점, 일지·시지 각 15점이에요. 지지 점수는 월률분야 일수 비율로 지장간에 나눠요.</li>
+        <li>월령: 절입 후 지난 날수로 사령 천간을 정하고 그 오행에 10점을 더해요.</li>
+        <li>합: 삼합·방합이 다 갖춰지면 참여한 지지 점수의 60%, 왕지가 낀 반합이면 30%를 합의 오행으로 옮겨요. 월지가 참여하면 +10%p, 합의 오행이 천간에 투출하면 +10%p, 합에 들지 않은 글자가 구성원을 충하면 절반으로 줄여요.</li>
+        <li>천간합, 형·파·해, 조후는 아직 반영하지 않았어요.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="card cta" aria-labelledby="cta-title">
+    <h2 id="cta-title">더 깊이 보고 싶다면</h2>
+    <p style="margin:0">실제 상담에서는 격국과 용신, 대운의 흐름까지 함께 보고 지금 시기에 맞는 명상 루틴을 짜 드려요.</p>
+    <ul>
+      <li>오행 명상 전체 리포트 (PDF)와 기운별 가이드 오디오</li>
+      <li>1:1 사주 상담: 지금 시기에 맞는 명상 루틴 설계</li>
+    </ul>
+    <div class="btns" style="justify-content:flex-start">
+      <button type="button" id="buy">전체 리포트 받기</button>
+      <button type="button" class="ghost" id="consult">상담 예약하기</button>
+      <button type="button" class="ghost" id="share">결과 복사하기</button>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+  </section>
+</main>
+<script>
+// ===== 사주 엔진: 정밀 절기(astronomy-engine) + 진태양시 + 지장간·월령·삼합/방합 세력 =====
+const A = (typeof Astronomy !== 'undefined') ? Astronomy : null;
+
+const STEMS = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const STEMS_KO = ['갑','을','병','정','무','기','경','신','임','계'];
+const BRANCHES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const BRANCHES_KO = ['자','축','인','묘','진','사','오','미','신','유','술','해'];
+const STEM_EL = ['wood','wood','fire','fire','earth','earth','metal','metal','water','water'];
+const BRANCH_EL = ['water','earth','wood','wood','earth','fire','fire','earth','metal','metal','earth','water'];
+// 12절 (황경 285°=소한부터 30°씩)
+const JEOL = ['소한','입춘','경칩','청명','입하','망종','소서','입추','백로','한로','입동','대설'];
+// 월률분야 지장간 [천간 index, 일수] 여기→중기→정기 (합계 30)
+const JIJANG = {
+  0:[[8,10],[9,20]],             // 子 壬癸
+  1:[[9,9],[7,3],[5,18]],        // 丑 癸辛己
+  2:[[4,7],[2,7],[0,16]],        // 寅 戊丙甲
+  3:[[0,10],[1,20]],             // 卯 甲乙
+  4:[[1,9],[9,3],[4,18]],        // 辰 乙癸戊
+  5:[[4,7],[6,7],[2,16]],        // 巳 戊庚丙
+  6:[[2,10],[5,9],[3,11]],       // 午 丙己丁
+  7:[[3,9],[1,3],[5,18]],        // 未 丁乙己
+  8:[[4,7],[8,7],[6,16]],        // 申 戊壬庚
+  9:[[6,10],[7,20]],             // 酉 庚辛
+  10:[[7,9],[3,3],[4,18]],       // 戌 辛丁戊
+  11:[[4,7],[0,7],[8,16]]        // 亥 戊甲壬
+};
+// 위치별 기본 점수
+const WEIGHT = {yearS:10,yearB:10,monthS:10,monthB:30,dayS:10,dayB:15,hourS:10,hourB:15};
+const SARYEONG_BONUS = 10;
+// 삼합: [생지, 왕지, 묘지, 오행]
+const SAMHAP = [[8,0,4,'water'],[11,3,7,'wood'],[2,6,10,'fire'],[5,9,1,'metal']];
+// 방합
+const BANGHAP = [[2,3,4,'wood'],[5,6,7,'fire'],[8,9,10,'metal'],[11,0,1,'water']];
+const CHUNG = b => (b+6)%12;
+const EL_STEMS = {wood:[0,1],fire:[2,3],earth:[4,5],metal:[6,7],water:[8,9]};
+
+// 한국 현지 시각(그 당시 법정시, 서머타임 포함) → UTC ms
+function seoulLocalToUtc(y,m,d,h,mi){
+  const target = Date.UTC(y,m-1,d,h,mi);
+  let utc = target - 9*3600e3;
+  for (let i=0;i<3;i++){
+    const off = tzOffsetMs(utc);
+    utc = target - off;
+  }
+  return utc;
+}
+function tzOffsetMs(utc){
+  const p = new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).formatToParts(new Date(utc));
+  const g = t => +p.find(x=>x.type===t).value;
+  return Date.UTC(g('year'),g('month')-1,g('day'),g('hour'),g('minute'),g('second')) - utc;
+}
+
+function sunLon(date){ return A.SunPosition(date).elon; }
+function findJeol(lonTarget, approxDate){
+  const start = new Date(approxDate.getTime() - 20*864e5);
+  return A.SearchSunLongitude(lonTarget, start, 40).date;
+}
+
+// opts: {hourKnown, lon(경도), timeMode:'true'|'mean'|'none', jasi:'23'|'00'}
+function calcSaju(y,m,d,h,mi,opts){
+  const o = Object.assign({hourKnown:true, lon:126.98, timeMode:'true', jasi:'23'}, opts||{});
+  const hh = o.hourKnown ? h : 12, mm = o.hourKnown ? mi : 0;
+  const utc = seoulLocalToUtc(y,m,d,hh,mm);
+  const birth = new Date(utc);
+  const civilOffsetMin = Math.round(tzOffsetMs(utc)/60e3);
+
+  // --- 절기 ---
+  const lon = sunLon(birth);
+  const k = Math.floor((((lon-285)%360)+360)%360/30);   // 0=소한 … 11=대설
+  const prevLon = (285+30*k)%360, nextLon = (prevLon+30)%360;
+  const approxIn = (((lon-prevLon)%360)+360)%360 / 0.9856;
+  const prevJeol = findJeol(prevLon, new Date(utc - approxIn*864e5));
+  const daysIn = (utc - prevJeol.getTime())/864e5;
+  const nextJeol = findJeol(nextLon, new Date(prevJeol.getTime()+30.4*864e5));
+
+  // 년주: 입춘 기준
+  const ipchun = findJeol(315, new Date(Date.UTC(y,1,4)));
+  const sy = utc < ipchun.getTime() ? y-1 : y;
+  const yIdx = ((sy-4)%60+60)%60, yS=yIdx%10, yB=yIdx%12;
+
+  // 월주
+  const mn = Math.floor((((lon-315)%360)+360)%360/30); // 0=寅
+  const mS = ((yS%5)*2+2+mn)%10, mB=(2+mn)%12;
+
+  // --- 일·시주용 시각 ---
+  let localMs, eotMin = null;
+  if (!o.hourKnown || o.timeMode==='none') localMs = utc + 9*3600e3;
+  else {
+    const meanMs = utc + o.lon/15*3600e3;
+    if (o.timeMode==='mean') localMs = meanMs;
+    else {
+      const obs = new A.Observer(37.5, o.lon, 0);
+      const ha = A.HourAngle(A.Body.Sun, birth, obs);        // 0~24h
+      const trueH = (ha+12)%24;
+      const meanH = (((meanMs/3600e3)%24)+24)%24;
+      let eot = trueH - meanH; if (eot>12) eot-=24; if (eot<-12) eot+=24;
+      eotMin = eot*60;
+      localMs = meanMs + eot*3600e3;
+    }
+  }
+  const lt = new Date(localMs);
+  const lh = lt.getUTCHours(), lmin = lt.getUTCMinutes();
+  let dayMs = Date.UTC(lt.getUTCFullYear(), lt.getUTCMonth(), lt.getUTCDate());
+  let hourDayShift = 0;
+  if (o.hourKnown && lh>=23){ if (o.jasi==='23') dayMs += 864e5; else hourDayShift = 1; }
+  const jdn = Math.floor(dayMs/864e5)+2440588;
+  const dIdx = ((jdn+49)%60+60)%60, dS=dIdx%10, dB=dIdx%12;
+
+  const pillars = {year:[yS,yB], month:[mS,mB], day:[dS,dB]};
+  if (o.hourKnown){
+    const hB = Math.floor((lh+1)/2)%12;
+    const baseS = (dS+hourDayShift)%10;
+    pillars.hour = [((baseS%5)*2+hB)%10, hB];
+  }
+
+  // --- 사령 ---
+  const jj = JIJANG[mB];
+  let acc=0, saryeong=jj[jj.length-1][0];
+  for (const [s,days] of jj){ acc+=days; if (daysIn < acc){ saryeong=s; break; } }
+
+  // --- 세력 점수 ---
+  const pos = ['year','month','day','hour'].filter(p=>pillars[p]);
+  const units = []; // {pos, kind:'S'|'B', el, pts, label}
+  const branchPts = {}; // pos → {el:pts}
+  pos.forEach(p=>{
+    const [s,b] = pillars[p];
+    units.push({pos:p, el:STEM_EL[s], pts:WEIGHT[p+'S']});
+    const w = WEIGHT[p+'B'], dist = {};
+    JIJANG[b].forEach(([hs,days])=>{ dist[STEM_EL[hs]] = (dist[STEM_EL[hs]]||0) + w*days/30; });
+    if (p==='month') dist[STEM_EL[saryeong]] += SARYEONG_BONUS;
+    branchPts[p] = dist;
+  });
+
+  // --- 합 판정 ---
+  const bOf = p => pillars[p][1];
+  const branchList = pos.map(p=>({p, b:bOf(p)}));
+  const has = b => branchList.filter(x=>x.b===b);
+  const stemEls = new Set(pos.map(p=>STEM_EL[pillars[p][0]]));
+  const allB = branchList.map(x=>x.b);
+  const combos = [];
+  const pushCombo = (type, el, members, base) => {
+    let f = base, notes=[];
+    if (members.some(x=>x.p==='month')){ f+=0.1; notes.push('월지 참여'); }
+    if (stemEls.has(el)){ f+=0.1; notes.push('천간 투출'); }
+    const broken = members.some(x=>allB.includes(CHUNG(x.b)) && !members.some(y=>y.b===CHUNG(x.b)));
+    if (broken){ f*=0.5; notes.push('충으로 약화'); }
+    combos.push({type, el, members, f:Math.min(f,0.9), notes});
+  };
+  SAMHAP.forEach(([s,w,g,el])=>{
+    const S=has(s),W=has(w),G=has(g);
+    if (S.length&&W.length&&G.length) pushCombo('삼합', el, [...S,...W,...G], 0.6);
+    else if (W.length && (S.length||G.length)) pushCombo('반합', el, [...W,...(S.length?S:G)], 0.3);
+  });
+  BANGHAP.forEach(([a,b,c,el])=>{
+    const X=has(a),Y=has(b),Z=has(c);
+    if (X.length&&Y.length&&Z.length) pushCombo('방합', el, [...X,...Y,...Z], 0.6);
+  });
+  // 한 지지가 여러 합에 걸리면 가장 강한 합 하나만 적용
+  const applied = {};
+  combos.forEach(c=>c.members.forEach(m=>{
+    if (!applied[m.p] || applied[m.p].f < c.f) applied[m.p] = c;
+  }));
+  Object.entries(applied).forEach(([p,c])=>{
+    const dist = branchPts[p]; let moved=0;
+    Object.keys(dist).forEach(e=>{ const t=dist[e]*c.f; dist[e]-=t; moved+=t; });
+    dist[c.el] = (dist[c.el]||0) + moved;
+  });
+
+  const score = {wood:0,fire:0,earth:0,metal:0,water:0};
+  units.forEach(u=>score[u.el]+=u.pts);
+  Object.values(branchPts).forEach(d=>Object.entries(d).forEach(([e,v])=>score[e]+=v));
+  const total = Object.values(score).reduce((a,b)=>a+b,0);
+  const pct = {}; Object.keys(score).forEach(e=>pct[e]=score[e]/total*100);
+
+  // 단순 개수 (비교용)
+  const count = {wood:0,fire:0,earth:0,metal:0,water:0};
+  pos.forEach(p=>{count[STEM_EL[pillars[p][0]]]++;count[BRANCH_EL[pillars[p][1]]]++;});
+
+  // 일간 강약 (비겁+인성 비율)
+  const ORD=['wood','fire','earth','metal','water'];
+  const me = STEM_EL[dS], mother = ORD[(ORD.indexOf(me)+4)%5];
+  const support = pct[me]+pct[mother];
+
+  return {pillars, pct, score, count, combos, applied, saryeong, daysIn,
+    prevJeol:{name:JEOL[k], date:prevJeol}, nextJeol:{name:JEOL[(k+1)%12], date:nextJeol},
+    ipchun, civilOffsetMin, eotMin, solarLocal:{h:lh,m:lmin}, birthUtc:utc, mode:o.hourKnown?o.timeMode:'none', lon:o.lon, me, mother, support};
+}
+
+const EL = {
+  wood:{ko:'목(木)',name:'나무',color:'var(--wood)'},
+  fire:{ko:'화(火)',name:'불',color:'var(--fire)'},
+  earth:{ko:'토(土)',name:'흙',color:'var(--earth)'},
+  metal:{ko:'금(金)',name:'쇠',color:'var(--metal)'},
+  water:{ko:'수(水)',name:'물',color:'var(--water)'}
+};
+const ORDER=['wood','fire','earth','metal','water'];
+// 상극: 넘치는 기운을 누르는 기운
+const CONTROL={wood:'metal',fire:'water',earth:'wood',metal:'fire',water:'earth'};
+
+const RX = {
+  wood:{title:'뻗어 오르는 나무 명상',
+    desc:'목은 시작하고 자라는 힘이에요. 이 기운이 비면 새 일을 벌이기 어렵고 마음이 쉽게 움츠러들어요. 몸을 위로 펴는 감각으로 뻗어 나가는 힘을 깨워요.',
+    meta:['봄','새벽 5~7시','초록·청록','추천 7분'],
+    steps:['허리를 세우고 앉아 발바닥을 바닥에 붙여요.','숨을 들이쉴 때 척추가 나무줄기처럼 위로 한 마디씩 자란다고 그려요.','내쉴 때 발밑으로 뿌리가 깊게 내려간다고 느껴요.','마지막 세 번의 호흡에서 이번 주에 시작할 작은 일 하나를 떠올려요.'],
+    breath:[['들이쉬기',4],['내쉬기',6]]},
+  fire:{title:'가슴에 불 밝히는 명상',
+    desc:'화는 드러내고 나누는 힘이에요. 이 기운이 비면 표현이 줄고 의욕이 식기 쉬워요. 가슴 한가운데 작은 불씨를 키우는 상상으로 따뜻함을 채워요.',
+    meta:['여름','낮 11~13시','주홍·붉은색','추천 5분'],
+    steps:['촛불이나 따뜻한 조명을 하나 켜고 편히 앉아요.','들이쉴 때 가슴 가운데 불씨가 한 톨씩 밝아진다고 그려요.','잠깐 멈춘 뒤 내쉴 때 그 빛이 어깨와 팔로 퍼져요.','끝나면 오늘 고마웠던 사람 한 명을 떠올리고 미소 지어요.'],
+    breath:[['들이쉬기',4],['멈추기',2],['내쉬기',4]]},
+  earth:{title:'땅에 내려앉는 그라운딩 명상',
+    desc:'토는 중심을 잡고 품는 힘이에요. 이 기운이 비면 생각이 흩어지고 붕 뜬 느낌이 들기 쉬워요. 몸의 무게를 땅에 맡기면서 중심을 다시 세워요.',
+    meta:['환절기','식후 편한 시간','노랑·황토색','추천 8분'],
+    steps:['의자에 앉아 두 발을 바닥에 평평하게 두고 손은 배 위에 얹어요.','네 박자씩 들이쉬고, 머물고, 내쉬고, 다시 머물러요.','정수리부터 발끝까지 천천히 내려가며 무게가 땅으로 스며든다고 느껴요.','마지막엔 배꼽 아래가 단단하게 받쳐 주는 감각에 머물러요.'],
+    breath:[['들이쉬기',4],['머물기',4],['내쉬기',4],['머물기',4]]},
+  metal:{title:'맑게 비우는 정리 명상',
+    desc:'금은 거르고 결단하는 힘이에요. 이 기운이 비면 정리가 안 되고 끊어 내야 할 걸 붙들고 있게 돼요. 깨끗한 숨으로 안을 비우며 경계를 또렷하게 세워요.',
+    meta:['가을','오후 5~7시','흰색·은색','추천 6분'],
+    steps:['창문을 조금 열거나 맑은 공기가 드는 곳에 앉아요.','코로 시원한 공기를 들이쉬며 가슴이 넓어지는 걸 느껴요.','잠시 멈췄다가 길게 내쉬며 오늘 내려놓을 것 하나를 함께 내보내요.','끝나면 책상 위 물건 하나를 제자리에 두며 마무리해요.'],
+    breath:[['들이쉬기',4],['멈추기',4],['내쉬기',6]]},
+  water:{title:'고요히 흐르는 물 명상',
+    desc:'수는 머금고 스며드는 지혜의 힘이에요. 이 기운이 비면 쉬지 못하고 마음이 메마르기 쉬워요. 길게 내쉬는 호흡으로 몸 안에 고요한 물을 채워요.',
+    meta:['겨울','밤 9~11시','남색·검정','추천 10분'],
+    steps:['불을 낮추고 눕거나 편하게 기대요.','짧게 들이쉬고, 들이쉰 것의 두 배 길이로 천천히 내쉬어요.','내쉴 때마다 몸이 깊은 호수 아래로 조금씩 가라앉는다고 그려요.','파도 소리가 멀어지고 수면이 잔잔해질 때까지 그 자리에 머물러요.'],
+    breath:[['들이쉬기',4],['내쉬기',8]]}
+};
+const EXCESS_TEXT = {
+  wood:'생각과 계획이 앞서 나가 조급해지기 쉬워요. 금 기운의 정리 명상처럼 들이쉰 뒤 멈추고 길게 내쉬는 호흡으로 속도를 고르게 해요.',
+  fire:'마음이 들뜨고 쉬이 지칠 수 있어요. 수 기운의 물 명상처럼 내쉬는 숨을 길게 늘려 열을 식혀요.',
+  earth:'생각이 고이고 몸이 무거워지기 쉬워요. 목 기운의 나무 명상처럼 몸을 위로 펴는 호흡으로 막힌 흐름을 틔워요.',
+  metal:'스스로에게 엄격해지고 긴장이 쌓이기 쉬워요. 화 기운의 가슴 명상처럼 따뜻한 감각에 머물며 마음을 풀어요.',
+  water:'생각이 깊어져 가라앉기 쉬워요. 토 기운의 그라운딩 명상처럼 발바닥 감각에 집중해 지금 여기로 돌아와요.'
+};
+
+const $=id=>document.getElementById(id);
+let last=null;
+const POSKO={year:'년지',month:'월지',day:'일지',hour:'시지'};
+const fmtKst=d=>{const k=new Date(d.getTime()+9*3600e3);return `${k.getUTCFullYear()}.${k.getUTCMonth()+1}.${k.getUTCDate()} ${String(k.getUTCHours()).padStart(2,'0')}:${String(k.getUTCMinutes()).padStart(2,'0')}`;};
+const hm=(h,m)=>`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+const signed=n=>(n>=0?'+':'−')+Math.abs(Math.round(n))+'분';
+
+function render(r, label, input){
+  last=r;
+  $('sample-tag').textContent=label;
+  const slots=[['hour','시주'],['day','일주'],['month','월주'],['year','년주']];
+  $('pillars').innerHTML=slots.map(([k,lab])=>{
+    const p=r.pillars[k];
+    if(!p) return `<div class="pillar empty"><div class="lab">${lab}</div><div class="ch">모름</div><div class="ch">모름</div></div>`;
+    const [s,b]=p, se=STEM_EL[s], be=BRANCH_EL[b];
+    const jj=JIJANG[b].map(([hs])=>k==='month'&&hs===r.saryeong?`<b title="사령">${STEMS[hs]}</b>`:`<span>${STEMS[hs]}</span>`).join('');
+    return `<div class="pillar"><div class="lab">${lab}${k==='day'?' (나)':''}</div>
+      <div class="ch" style="color:${EL[se].color}">${STEMS[s]}<small>${STEMS_KO[s]} · ${EL[se].ko}</small></div>
+      <div class="ch" style="color:${EL[be].color}">${BRANCHES[b]}<small>${BRANCHES_KO[b]} · ${EL[be].ko}</small></div>
+      <div class="jj" aria-label="지장간">${jj}</div></div>`;
+  }).join('');
+
+  // 시각·절기 정보
+  const rows=[];
+  if(input.known){
+    const dst=r.civilOffsetMin-540;
+    let t=`${input.time} 입력`;
+    if(dst!==0) t+=` → 당시 표준시 차이 ${signed(-dst)}`;
+    if(r.mode==='true') t+=` → 진태양시 ${hm(r.solarLocal.h,r.solarLocal.m)} (경도 ${signed((r.lon-135)*4)}, 균시차 ${signed(r.eotMin)})`;
+    else if(r.mode==='mean') t+=` → 평균태양시 ${hm(r.solarLocal.h,r.solarLocal.m)} (경도 ${signed((r.lon-135)*4)})`;
+    else t+=` → 보정 없이 ${hm(r.solarLocal.h,r.solarLocal.m)}`;
+    rows.push(['시각',t]);
+  } else rows.push(['시각','모름 (시주 없이 여섯 글자로 계산)']);
+  rows.push(['절입',`${r.prevJeol.name} ${fmtKst(r.prevJeol.date)} 이후 ${Math.floor(r.daysIn)+1}일째 · 다음 ${r.nextJeol.name} ${fmtKst(r.nextJeol.date)}`]);
+  rows.push(['월령',`월지 ${BRANCHES[r.pillars.month[1]]}의 사령은 ${STEMS[r.saryeong]} · ${EL[STEM_EL[r.saryeong]].ko} 기운이에요`]);
+  $('info').innerHTML=rows.map(([a,b])=>`<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
+
+  // 세력 막대
+  const p=r.pct;
+  const min=Math.min(...ORDER.map(e=>p[e])), max=Math.max(...ORDER.map(e=>p[e]));
+  const main=ORDER.find(e=>p[e]===min), over=ORDER.find(e=>p[e]===max);
+  $('bars').innerHTML=ORDER.map(e=>{
+    const chip = e===main?`<span class="chip" style="background:${EL[e].color}">부족</span>`:(e===over&&max>=35?`<span class="chip" style="background:${EL[e].color}">과다</span>`:'');
+    return `<div class="bar"><span>${EL[e].ko}${chip}</span><div class="track"><div class="fill" style="width:${p[e]}%;background:${EL[e].color}"></div></div><span class="num">${p[e].toFixed(0)}% <span class="cmp">· ${r.count[e]}자</span></span></div>`;
+  }).join('');
+
+  // 합
+  if(r.combos.length){
+    $('combos').innerHTML=r.combos.map(c=>{
+      const used=c.members.every(m=>r.applied[m.p]===c);
+      const who=c.members.map(m=>`${BRANCHES[m.b]}(${POSKO[m.p]})`).join(' ');
+      return `<div class="combo"><span class="big" style="color:${EL[c.el].color}">${c.members.map(m=>BRANCHES[m.b]).join('')}</span>
+        <span><b>${c.type}</b> → ${EL[c.el].ko}</span><span class="cmp">${who}</span>
+        <span class="tag">점수 ${Math.round(c.f*100)}% 이동</span>${c.notes.map(n=>`<span class="tag">${n}</span>`).join('')}${used?'':'<span class="tag">더 강한 합에 우선 적용</span>'}</div>`;
+    }).join('');
+  } else $('combos').innerHTML='<p class="note" style="margin:0">지지에 삼합·방합·반합이 없어요.</p>';
+
+  // 일간 강약
+  const s=r.support;
+  $('gauge-pin').style.left=`calc(${Math.min(100,Math.max(0,s))}% - 1px)`;
+  const lab=s>=60?'신강한 편':s>=45?'중화에 가까움':s>=30?'약간 신약':'신약한 편';
+  const ds=r.pillars.day[0];
+  $('strength').innerHTML=`일간 <b style="color:${EL[r.me].color}">${STEMS[ds]}${EL[r.me].ko.slice(0,1)}</b>을 돕는 기운(${EL[r.me].ko}·${EL[r.mother].ko})이 ${s.toFixed(0)}%로 <b>${lab}</b>이에요.`;
+
+  $('summary').textContent=`${EL[main].ko} 기운이 ${p[main].toFixed(0)}%로 가장 약하고, ${EL[over].ko} 기운이 ${p[over].toFixed(0)}%로 가장 강해요.`+
+    (r.count[main]>0?` 글자는 ${r.count[main]}개 있지만 세력으로는 가장 약해요.`:'');
+
+  const rx=RX[main];
+  $('rx').style.setProperty('--el',EL[main].color);
+  $('rx-title').innerHTML=`<span class="el">${EL[main].ko}</span> ${rx.title}`;
+  $('rx-desc').textContent=rx.desc;
+  $('rx-meta').innerHTML=rx.meta.map(m=>`<span class="tag">${m}</span>`).join('');
+  $('rx-steps').innerHTML=rx.steps.map(x=>`<li>${x}</li>`).join('');
+  stopBreath();
+  $('timer-info').textContent='호흡 리듬: '+rx.breath.map(([n,sec])=>`${n} ${sec}초`).join(' → ');
+  if(max>=35){
+    $('excess').hidden=false;
+    $('ex-title').innerHTML=`<span style="color:${EL[over].color}">${EL[over].ko}</span> 기운이 ${max.toFixed(0)}%로 강해요`;
+    $('ex-desc').textContent=EXCESS_TEXT[over];
+  } else $('excess').hidden=true;
+}
+
+// 호흡 타이머
+let timerId=null, phaseIdx=0, remain=0, cycles=0, totalSec=0;
+const SESSION=180;
+function stopBreath(){
+  clearTimeout(timerId); timerId=null;
+  const orb=$('orb'); orb.style.transitionDuration='0.8s'; orb.style.transform='scale(.62)';
+  $('phase').textContent='준비';
+}
+function runPhase(){
+  const rx=RX[currentMain()], ph=rx.breath[phaseIdx], [name,sec]=ph;
+  const orb=$('orb');
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  orb.style.transitionDuration=reduce?'0s':sec+'s';
+  if(name==='들이쉬기') orb.style.transform='scale(1)';
+  else if(name==='내쉬기') orb.style.transform='scale(.62)';
+  $('phase').textContent=name;
+  totalSec+=sec;
+  const left=Math.max(0,SESSION-totalSec);
+  $('timer-info').textContent=`${cycles+1}번째 호흡 · 남은 시간 약 ${Math.floor(left/60)}분 ${String(left%60).padStart(2,'0')}초`;
+  timerId=setTimeout(()=>{
+    phaseIdx++;
+    if(phaseIdx>=rx.breath.length){phaseIdx=0;cycles++;}
+    if(totalSec>=SESSION){stopBreath();$('phase').textContent='마침';$('timer-info').textContent=`3분 동안 ${cycles}번 호흡했어요. 잠시 그대로 머물러 보세요.`;return;}
+    runPhase();
+  },sec*1000);
+}
+function currentMain(){
+  const c=last.pct, min=Math.min(...ORDER.map(e=>c[e]));
+  return ORDER.find(e=>c[e]===min);
+}
+$('start').addEventListener('click',()=>{stopBreath();phaseIdx=0;cycles=0;totalSec=0;setTimeout(runPhase,50);});
+$('stop').addEventListener('click',()=>{stopBreath();const rx=RX[currentMain()];$('timer-info').textContent='호흡 리듬: '+rx.breath.map(([n,s])=>`${n} ${s}초`).join(' → ');});
+
+// 입력
+$('unknown').addEventListener('change',e=>{$('btime').disabled=e.target.checked;});
+function run(){
+  const dv=$('bdate').value;
+  if(!dv){$('err').textContent='생년월일을 입력해 주세요.';return false;}
+  const [y,m,d]=dv.split('-').map(Number);
+  if(y<1900||y>2099){$('err').textContent='1900년부터 2099년 사이 날짜를 넣어 주세요.';return false;}
+  const known=!$('unknown').checked && !!$('btime').value;
+  let h=12,mi=0; if(known){[h,mi]=$('btime').value.split(':').map(Number);}
+  const place=$('place').options[$('place').selectedIndex].text;
+  const r=calcSaju(y,m,d,h,mi,{hourKnown:known,lon:+$('place').value,timeMode:$('tmode').value,jasi:$('jasi').value});
+  $('err').textContent='';
+  render(r,`${y}년 ${m}월 ${d}일 ${known?$('btime').value:'(시각 모름)'} ${place}`,{known,time:$('btime').value});
+  return true;
+}
+$('form').addEventListener('submit',e=>{
+  e.preventDefault();
+  if(typeof Astronomy==='undefined'){$('err').textContent='천문 계산 모듈을 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.';return;}
+  if(run()) $('r-title').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+});
+function toast(t){$('toast').textContent=t;}
+$('buy').addEventListener('click',()=>toast('결제 링크를 연결할 자리예요. (아직 연결 전)'));
+$('consult').addEventListener('click',()=>toast('상담 예약 링크를 연결할 자리예요. (아직 연결 전)'));
+$('share').addEventListener('click',async()=>{
+  const p=last.pct;
+  const txt=`[가온 오행 명상 진단]\n`+ORDER.map(e=>`${EL[e].ko} ${p[e].toFixed(0)}%`).join(' · ')+`\n추천 명상: ${RX[currentMain()].title}`;
+  try{await navigator.clipboard.writeText(txt);toast('결과를 복사했어요. 원하는 곳에 붙여넣어 공유하세요.');}
+  catch(err){toast('이 화면에서는 복사가 막혀 있어요. 결과 화면을 캡처해서 공유해 주세요.');}
+});
+if(typeof Astronomy==='undefined') $('err').textContent='천문 계산 모듈을 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.';
+else run();
+</script>
+
+<footer class="gaon-foot">© 가온 · <a href="https://www.instagram.com/tantan.life/" target="_blank" rel="noopener">Instagram @tantan.life</a> · <a href="https://the-path-of-life.tistory.com/" target="_blank" rel="noopener">Blog</a><br>입력한 정보는 이 기기 안에만 저장되고 서버로 보내지지 않아요.</footer>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))}</script>
+</body>
+</html>

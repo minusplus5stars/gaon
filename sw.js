@@ -1,5 +1,5 @@
 // 가온 오프라인 지원: 페이지는 항상 최신을 먼저 받아오고, 인터넷이 끊기면 저장해 둔 것을 보여줍니다.
-const CACHE = 'gaon-v1';
+const CACHE = 'gaon-v2';
 const CORE = ['/', '/taegil/', '/manifest.webmanifest', '/icons/icon-192.png'];
 
 self.addEventListener('install', e => {

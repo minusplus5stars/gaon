@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta name="description" content="여행 길일 찾기 · 가온">
+<meta name="theme-color" content="#1C2742">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="가온">
+<style>
+.gaon-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1040px;margin:0 auto;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));
+  font:500 13px "IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+.gaon-nav a{color:inherit;opacity:.7;text-decoration:none}
+.gaon-nav a:hover{opacity:1}
+.gaon-foot{max-width:1040px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-right,0px)) max(28px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  font:12px "IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;opacity:.7;text-align:center}
+.gaon-foot a{color:inherit}
+.gaon-ai-soon{border:1px dashed currentColor;border-radius:8px;padding:14px 16px;opacity:.75;font-size:14px;line-height:1.6}
+.gaon-ai-soon b{display:block;font-size:15px;margin-bottom:2px}
+</style>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>여행 길일 찾기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* layout: one narrow column — inputs, then ranked departure windows, then a month calendar with day detail */
+  --night: #0c0f1d;
+  --panel: #151a2e;
+  --line: #2a3150;
+  --ink: #e8e4d8;
+  --mute: #9096b0;
+  --gold: #d8b46a;
+  --bad: #e0675f;
+  --warn: #e3a94c;
+  --good: #5fc3a6;
+  --display: "Gowun Batang", "Noto Serif KR", serif;
+  --body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--night); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+body {
+  background:
+    radial-gradient(1200px 500px at 80% -10%, rgba(216,180,106,.10), transparent 60%),
+    radial-gradient(900px 400px at -10% 10%, rgba(95,110,195,.14), transparent 60%),
+    var(--night);
+  min-height: 100%;
+}
+canvas#stars { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+main { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 28px 16px 64px; display: flex; flex-direction: column; gap: 18px; }
+header h1 { font-family: var(--display); font-weight: 700; font-size: 30px; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+header .iast { color: var(--gold); font-family: var(--display); font-size: 15px; letter-spacing: .04em; }
+header p { color: var(--mute); margin: 6px 0 0; max-width: 62ch; }
+section.card { background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+h2 { font-family: var(--display); font-size: 19px; margin: 0 0 12px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+h2 small { font-family: var(--body); font-size: 12px; color: var(--mute); font-weight: 400; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 12px; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--mute); }
+input, select { font: inherit; font-size: 15px; color: var(--ink); background: var(--night); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; min-height: 40px; }
+input:focus-visible, select:focus-visible, button:focus-visible, .day:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.check { flex-direction: row; align-items: center; gap: 8px; color: var(--ink); font-size: 14px; }
+.check input { width: 18px; min-height: 18px; accent-color: var(--gold); }
+button { font: inherit; cursor: pointer; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 9px 14px; }
+button.primary { background: var(--gold); color: #1b1608; border-color: var(--gold); font-weight: 600; width: 100%; padding: 12px; font-size: 16px; }
+button.primary:hover { filter: brightness(1.07); }
+details summary { cursor: pointer; color: var(--gold); font-size: 14px; padding: 4px 0; }
+.note { font-size: 12.5px; color: var(--mute); }
+.tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 99px; border: 1px solid var(--gold); color: var(--gold); vertical-align: 2px; }
+
+/* natal table */
+.tbl-wrap { overflow-x: auto; margin-top: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--mute); font-weight: 500; font-size: 12px; }
+td .i { color: var(--mute); font-size: 12px; }
+
+/* rules */
+.rules { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.rule { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.rule b { font-weight: 500; font-size: 14px; }
+.rule span.i { color: var(--mute); font-size: 12px; display: block; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; padding: 6px 10px; font-size: 13px; background: transparent; color: var(--mute); }
+.seg button[aria-pressed="true"].bad { background: var(--bad); color: #1d0b0a; }
+.seg button[aria-pressed="true"].warn { background: var(--warn); color: #1d1405; }
+.seg button[aria-pressed="true"].off { background: var(--line); color: var(--ink); }
+
+/* summary */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+.stat { min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.stat .n { font-size: 22px; font-family: var(--display); font-variant-numeric: tabular-nums; }
+.stat .l { font-size: 12px; color: var(--mute); }
+.stat.bad .n { color: var(--bad); } .stat.good .n { color: var(--good); } .stat.ok .n { color: var(--gold); }
+.wins { display: flex; flex-direction: column; gap: 8px; }
+.win { display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); border-left: 4px solid var(--good); background: rgba(95,195,166,.05); cursor: pointer; text-align: left; width: 100%; }
+.win .rk { font-family: var(--display); font-size: 20px; color: var(--gold); text-align: center; }
+.win .dt { font-size: 15.5px; font-weight: 600; }
+.win .sub { font-size: 12.5px; color: var(--mute); }
+.win .sc { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--good); }
+.empty { color: var(--mute); padding: 10px 0; }
+
+/* calendar */
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--mute); margin-bottom: 10px; }
+.legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.month { margin-bottom: 16px; }
+.month h3 { font-family: var(--display); font-weight: 400; font-size: 16px; margin: 0 0 6px; color: var(--gold); }
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal .wd { text-align: center; font-size: 11.5px; color: var(--mute); padding-bottom: 2px; }
+.day { position: relative; aspect-ratio: 1 / 1.05; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.02); color: var(--ink); padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-variant-numeric: tabular-nums; min-width: 0; }
+.day .dn { font-size: 15px; font-weight: 500; }
+.day .mk { font-size: 10px; line-height: 1; color: var(--mute); }
+.day.x { background: rgba(224,103,95,.13); border-color: rgba(224,103,95,.45); }
+.day.x .dn { color: var(--bad); text-decoration: line-through; text-decoration-thickness: 1.5px; }
+.day.w { background: rgba(227,169,76,.10); border-color: rgba(227,169,76,.38); }
+.day.n { }
+.day.g { background: rgba(95,195,166,.14); border-color: rgba(95,195,166,.55); }
+.day.g .dn { color: var(--good); }
+.day.trip { box-shadow: inset 0 -3px 0 var(--gold); }
+.day.sel { outline: 2px solid var(--gold); outline-offset: 1px; }
+.day.pad { visibility: hidden; }
+
+/* detail */
+#detail .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+#detail .verdict { font-size: 13px; padding: 2px 10px; border-radius: 99px; font-weight: 600; }
+.v-x { background: var(--bad); color: #1d0b0a; } .v-w { background: var(--warn); color: #1d1405; } .v-g { background: var(--good); color: #08201a; } .v-n { background: var(--line); color: var(--ink); }
+.panch { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px 12px; margin: 10px 0; font-size: 13px; }
+.panch div span { color: var(--mute); font-size: 11.5px; display: block; }
+.flags { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.flags li { padding: 7px 10px; border-radius: 8px; font-size: 13.5px; border-left: 4px solid; background: rgba(255,255,255,.03); }
+.flags li.bad { border-color: var(--bad); } .flags li.warn { border-color: var(--warn); } .flags li.good { border-color: var(--good); }
+.flags li em { font-style: normal; font-size: 11px; color: var(--mute); margin-right: 6px; }
+.err { color: var(--bad); font-size: 13px; }
+@media (max-width: 420px) {
+  header h1 { font-size: 26px; }
+  .day .mk { display: none; }
+  .rule { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<nav class="gaon-nav"><a href="/">← 가온 홈</a><span style="opacity:.55">가온</span></nav>
+
+<canvas id="stars" aria-hidden="true"></canvas>
+<main>
+<header>
+  <div class="iast">Yātrā Muhūrta · 여행 무후르타</div>
+  <h1>여행 길일 찾기</h1>
+  <p>출생 차트와 지금 하늘의 트랜싯을 겹쳐 보고, 출발일로 피해야 할 날을 걸러냅니다. 판창가(Pañcāṅga) 요소, 타라·찬드라 발라, 역행과 일·월식을 함께 봅니다.</p>
+</header>
+
+<section class="card" aria-labelledby="h-birth">
+  <h2 id="h-birth">출생 정보 <small id="exampleTag"></small></h2>
+  <div class="grid">
+    <label for="bDate">생년월일<input id="bDate" type="date"></label>
+    <label for="bTime">출생 시각<input id="bTime" type="time"></label>
+    <label for="bTz">시간대 (UTC±)<input id="bTz" type="number" step="0.5"></label>
+    <label for="bCity">출생지 빠른 선택
+      <select id="bCity">
+        <option value="">직접 입력</option>
+        <option value="37.5665,126.978">서울</option>
+        <option value="35.1796,129.0756">부산</option>
+        <option value="37.4563,126.7052">인천</option>
+        <option value="35.8714,128.6014">대구</option>
+        <option value="36.3504,127.3845">대전</option>
+        <option value="35.1595,126.8526">광주</option>
+        <option value="35.5384,129.3114">울산</option>
+        <option value="33.4996,126.5312">제주</option>
+      </select>
+    </label>
+    <label for="bLat">위도 (북+)<input id="bLat" type="number" step="0.0001"></label>
+    <label for="bLon">경도 (동+)<input id="bLon" type="number" step="0.0001"></label>
+  </div>
+  <p class="note">1987–1988년 한국 서머타임 기간 출생이면 시간대를 10으로 넣으세요.</p>
+  <details id="natalBox">
+    <summary>출생 차트 확인하기 (Kala 결과와 대조용)</summary>
+    <div class="tbl-wrap"><table id="natalTbl"></table></div>
+  </details>
+</section>
+
+<section class="card" aria-labelledby="h-trip">
+  <h2 id="h-trip">여행 조건</h2>
+  <div class="grid">
+    <label for="tFrom">검색 시작일<input id="tFrom" type="date"></label>
+    <label for="tTo">검색 종료일<input id="tTo" type="date"></label>
+    <label for="tLen">여행 일수<input id="tLen" type="number" min="1" max="60"></label>
+    <label for="tTime">출발 시각<input id="tTime" type="time"></label>
+    <label for="tTz">출발지 시간대 (UTC±)<input id="tTz" type="number" step="0.5"></label>
+    <label for="tDir">목적지 방향
+      <select id="tDir">
+        <option value="">고려 안 함</option>
+        <option value="E">동쪽 (일본 등)</option>
+        <option value="W">서쪽 (중국·유럽 등)</option>
+        <option value="S">남쪽 (동남아·제주 등)</option>
+        <option value="N">북쪽</option>
+      </select>
+    </label>
+    <label for="tZod">조디악
+      <select id="tZod">
+        <option value="sid">사이더리얼 (라히리)</option>
+        <option value="trop">트로피컬 (서양)</option>
+      </select>
+    </label>
+  </div>
+  <div style="margin-top:10px"><label class="check" for="tRet"><input id="tRet" type="checkbox"> 귀국일도 흉일이 아닐 것</label></div>
+  <details>
+    <summary>판단 규칙 조정</summary>
+    <p class="note">각 규칙이 걸렸을 때 날짜를 흉일로 뺄지, 주의로만 표시할지, 무시할지 고릅니다.</p>
+    <div class="rules" id="rules"></div>
+  </details>
+</section>
+
+<button class="primary" id="run" type="button">길일 계산하기</button>
+<div id="err" class="err" role="alert"></div>
+
+<section class="card" aria-labelledby="h-res" id="resCard">
+  <h2 id="h-res">추천 출발 일정 <small id="resSub"></small></h2>
+  <div class="stats" id="stats"></div>
+  <div class="wins" id="wins"></div>
+</section>
+
+<section class="card" aria-labelledby="h-cal">
+  <h2 id="h-cal">달력 <small>날짜를 누르면 상세 판단이 나옵니다</small></h2>
+  <div class="legend">
+    <span><i style="background:var(--good)"></i>길일</span>
+    <span><i style="background:var(--line)"></i>보통</span>
+    <span><i style="background:var(--warn)"></i>주의 많음</span>
+    <span><i style="background:var(--bad)"></i>흉일 (제외)</span>
+    <span><i style="background:var(--gold);height:3px;vertical-align:2px"></i>선택한 여행 기간</span>
+  </div>
+  <div id="cal"></div>
+</section>
+
+<section class="card" id="detail" aria-live="polite"></section>
+
+<p class="note">이 페이지는 지구 중심 진황도 좌표(astronomy-engine)로 매일 출발 시각 기준 위치를 계산합니다. 라히리 아야남샤는 근사식이라 Kala 값과 1′ 안팎 차이 날 수 있고, 라후/케투는 평균 교점입니다. 요일(바라)은 일출이 아닌 달력 날짜 기준입니다.</p>
+</main>
+
+<script src="/lib/astronomy.browser.min.js"></script>
+<script>
+// ===== Travel Muhurta engine (needs global Astronomy) =====
+var TM = (function () {
+  var A = Astronomy;
+  var BODIES = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'];
+  var SIGNS = [
+    ['양자리', 'Meṣa'], ['황소자리', 'Vṛṣabha'], ['쌍둥이자리', 'Mithuna'], ['게자리', 'Karka'],
+    ['사자자리', 'Siṃha'], ['처녀자리', 'Kanyā'], ['천칭자리', 'Tulā'], ['전갈자리', 'Vṛścika'],
+    ['사수자리', 'Dhanu'], ['염소자리', 'Makara'], ['물병자리', 'Kumbha'], ['물고기자리', 'Mīna']
+  ];
+  var NAKS = [
+    ['아쉬위니', 'Aśvinī'], ['바라니', 'Bharaṇī'], ['크리티카', 'Kṛttikā'], ['로히니', 'Rohiṇī'],
+    ['므리가쉬라', 'Mṛgaśirā'], ['아르드라', 'Ārdrā'], ['푸나르바수', 'Punarvasu'], ['푸쉬야', 'Puṣya'],
+    ['아쉴레샤', 'Āśleṣā'], ['마가', 'Maghā'], ['푸르바 팔구니', 'Pūrva Phalgunī'], ['우타라 팔구니', 'Uttara Phalgunī'],
+    ['하스타', 'Hasta'], ['치트라', 'Citrā'], ['스와티', 'Svātī'], ['비샤카', 'Viśākhā'],
+    ['아누라다', 'Anurādhā'], ['제쉬타', 'Jyeṣṭhā'], ['물라', 'Mūla'], ['푸르바 아샤다', 'Pūrva Āṣāḍhā'],
+    ['우타라 아샤다', 'Uttara Āṣāḍhā'], ['슈라바나', 'Śravaṇa'], ['다니쉬타', 'Dhaniṣṭhā'], ['샤타비샤', 'Śatabhiṣā'],
+    ['푸르바 바드라파다', 'Pūrva Bhādrapadā'], ['우타라 바드라파다', 'Uttara Bhādrapadā'], ['레바티', 'Revatī']
+  ];
+  var TARAS = [
+    ['잔마', 'Janma'], ['삼파트', 'Sampat'], ['비파트', 'Vipat'], ['크셰마', 'Kṣema'], ['프라티아리', 'Pratyari'],
+    ['사다나', 'Sādhana'], ['나이다나', 'Naidhana'], ['미트라', 'Mitra'], ['파라마 미트라', 'Parama Mitra']
+  ];
+  var KARANAS = ['Bava', 'Bālava', 'Kaulava', 'Taitila', 'Gara', 'Vaṇija', 'Viṣṭi'];
+  var PNAME = { Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성', Jupiter: '목성', Saturn: '토성', Rahu: '라후', Ketu: '케투', Asc: '라그나' };
+  var PIAST = { Sun: 'Sūrya', Moon: 'Candra', Mercury: 'Budha', Venus: 'Śukra', Mars: 'Maṅgala', Jupiter: 'Guru', Saturn: 'Śani', Rahu: 'Rāhu', Ketu: 'Ketu', Asc: 'Lagna' };
+  var WEEK = ['일', '월', '화', '수', '목', '금', '토'];
+  var VARA = ['Ravivāra', 'Somavāra', 'Maṅgalavāra', 'Budhavāra', 'Guruvāra', 'Śukravāra', 'Śanivāra'];
+  // Disha shoola: direction that is blocked on each weekday
+  var SHOOLA = ['W', 'E', 'N', 'N', 'S', 'W', 'E'];
+  var DIRK = { E: '동쪽', W: '서쪽', N: '북쪽', S: '남쪽' };
+  var NAK_GOOD = [0, 4, 6, 7, 12, 16, 21, 22, 26];          // Aśvinī, Mṛgaśirā, Punarvasu, Puṣya, Hasta, Anurādhā, Śravaṇa, Dhaniṣṭhā, Revatī
+  var NAK_BAD = [1, 2, 5, 8, 9, 15];                         // Bharaṇī, Kṛttikā, Ārdrā, Āśleṣā, Maghā, Viśākhā
+  var NAK_WARN = [10, 17, 18, 19, 24];                       // Pūrva Phalgunī, Jyeṣṭhā, Mūla, Pūrva Āṣāḍhā, Pūrva Bhādrapadā
+
+  function norm(x) { x %= 360; return x < 0 ? x + 360 : x; }
+  function wrap180(x) { x = norm(x); return x > 180 ? x - 360 : x; }
+  function mk(ms) { return A.MakeTime(new Date(ms)); }
+  function yearsSince2000(t) { return t.tt / 365.25; }
+  function ayanamsa(t) { return 23.85306 + yearsSince2000(t) * (50.2875 / 3600); } // Lahiri (approx.)
+  function trop(body, t) {
+    if (body === 'Moon') return A.EclipticGeoMoon(t).lon;
+    if (body === 'Sun') return A.SunPosition(t).elon;
+    return A.Ecliptic(A.GeoVector(body, t, true)).elon;
+  }
+  function meanNode(t) {
+    var T = t.tt / 36525;
+    return norm(125.0445479 - 1934.1362891 * T + 0.0020754 * T * T);
+  }
+  function ascendant(t, lat, lon) {
+    var T = t.tt / 36525;
+    var eps = (23.4392911 - 0.0130042 * T) * Math.PI / 180;
+    var ramc = norm(A.SiderealTime(t) * 15 + lon) * Math.PI / 180;
+    var phi = lat * Math.PI / 180;
+    var asc = Math.atan2(Math.cos(ramc), -(Math.sin(ramc) * Math.cos(eps) + Math.tan(phi) * Math.sin(eps)));
+    return norm(asc * 180 / Math.PI);
+  }
+  function lonOf(body, t, sid) {
+    var l = body === 'Rahu' ? meanNode(t) : body === 'Ketu' ? meanNode(t) + 180 : trop(body, t);
+    return norm(sid ? l - ayanamsa(t) : l);
+  }
+  function sign(l) { return Math.floor(norm(l) / 30); }
+  function nak(l) { return Math.floor(norm(l) / (360 / 27)); }
+  function pada(l) { return Math.floor((norm(l) % (360 / 27)) / (360 / 108)) + 1; }
+  function fmtDeg(l) {
+    var d = norm(l) % 30, dd = Math.floor(d), mm = Math.floor((d - dd) * 60);
+    return dd + '°' + (mm < 10 ? '0' : '') + mm + "'";
+  }
+  function localMs(y, m, d, hh, mi, tz) { return Date.UTC(y, m, d, hh, mi) - tz * 3600000; }
+
+  function natal(b, sid) {
+    var ms = localMs(b.y, b.m, b.d, b.hh, b.mi, b.tz);
+    var t = mk(ms), out = {};
+    BODIES.concat(['Rahu', 'Ketu']).forEach(function (p) { out[p] = lonOf(p, t, sid); });
+    var asc = ascendant(t, b.lat, b.lon);
+    out.Asc = norm(sid ? asc - ayanamsa(t) : asc);
+    return out;
+  }
+
+  function isRetro(body, t) {
+    var a = trop(body, mk(t.date.getTime() - 43200000)), c = trop(body, mk(t.date.getTime() + 43200000));
+    return wrap180(c - a) < 0;
+  }
+  function speed(body, ms) {
+    return wrap180(trop(body, mk(ms + 43200000)) - trop(body, mk(ms - 43200000)));
+  }
+
+  // Western void-of-course Moon at a moment (tropical signs, Ptolemaic aspects to Sun..Saturn)
+  var ASPECTS = [0, 60, 90, 120, 180, 240, 270, 300];
+  var VOC_P = ['Sun', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'];
+  function vocAt(ms) {
+    var step = 1800000, m0 = trop('Moon', mk(ms)), s0 = sign(m0);
+    var prev = {}, t = ms;
+    VOC_P.forEach(function (p) { prev[p] = norm(m0 - trop(p, mk(ms))); });
+    for (var i = 0; i < 140; i++) {
+      t += step;
+      var tm = mk(t), ml = trop('Moon', tm);
+      if (sign(ml) !== s0) return { voc: true, until: t };
+      for (var k = 0; k < VOC_P.length; k++) {
+        var p = VOC_P[k], d = norm(ml - trop(p, tm)), d0 = prev[p];
+        for (var j = 0; j < ASPECTS.length; j++) {
+          var g0 = wrap180(d0 - ASPECTS[j]), g1 = wrap180(d - ASPECTS[j]);
+          if (g0 < 0 && g1 >= 0 && g1 - g0 < 30) return { voc: false };
+        }
+        prev[p] = d;
+      }
+    }
+    return { voc: false };
+  }
+
+  function eclipses(fromMs, toMs) {
+    var list = [], t;
+    try {
+      var e = A.SearchLunarEclipse(mk(fromMs - 5 * 864e5));
+      while (e.peak.date.getTime() < toMs + 5 * 864e5) {
+        list.push({ ms: e.peak.date.getTime(), type: '월식', kind: e.kind });
+        e = A.NextLunarEclipse(e.peak);
+      }
+      var s = A.SearchGlobalSolarEclipse(mk(fromMs - 5 * 864e5));
+      while (s.peak.date.getTime() < toMs + 5 * 864e5) {
+        list.push({ ms: s.peak.date.getTime(), type: '일식', kind: s.kind });
+        s = A.NextGlobalSolarEclipse(s.peak);
+      }
+    } catch (err) { }
+    return list;
+  }
+  var EKIND = { penumbral: '반영', partial: '부분', total: '개기', annular: '금환' };
+
+  // Evaluate one day. opts: {sid, tz, hh, mi, dir, rules}
+  function evalDay(y, m, d, nat, opts, ecl) {
+    var R = opts.rules, ms = localMs(y, m, d, opts.hh, opts.mi, opts.tz), t = mk(ms);
+    var flags = [], sid = opts.sid;
+    var moon = lonOf('Moon', t, sid), sun = lonOf('Sun', t, sid);
+    var info = { ms: ms, moon: moon, sun: sun };
+    function on(r) { return R[r] && R[r] !== 'off'; }
+    function add(lv, rule, txt) {
+      if (lv === 'bad' && R[rule] === 'warn') lv = 'warn';
+      flags.push({ lv: lv, rule: rule, txt: txt });
+    }
+
+    // 1. Chandra bala
+    var house = ((sign(moon) - sign(nat.Moon) + 12) % 12) + 1;
+    info.house = house;
+    if (on('chandra')) {
+      if (house === 8) add('bad', 'chandra', '찬드라슈타마 — 달이 출생 달에서 8번째 라시 (Candrāṣṭama)');
+      else if (house === 12 || house === 4) add('warn', 'chandra', '달이 출생 달에서 ' + house + '번째 라시 (Candra Bala 약함)');
+      else if ([1, 3, 6, 7, 10, 11].indexOf(house) >= 0) add('good', 'chandra', '달이 출생 달에서 ' + house + '번째 라시 (Candra Bala 좋음)');
+    }
+    // 2. Tara bala (always sidereal nakshatras)
+    var moonS = sid ? moon : norm(moon - ayanamsa(t));
+    var natMoonS = sid ? nat.Moon : norm(nat.Moon - ayanamsa(t));
+    var tn = nak(moonS), nn = nak(natMoonS);
+    var cnt = ((tn - nn + 27) % 27) + 1, tara = ((cnt - 1) % 9);
+    info.nak = tn; info.tara = tara;
+    if (on('tara')) {
+      var tl = TARAS[tara][0] + ' (' + TARAS[tara][1] + ')';
+      if (tara === 2 || tara === 4 || tara === 6) add('bad', 'tara', '타라 ' + (tara + 1) + '번 ' + tl);
+      else if (tara === 0) add('warn', 'tara', '타라 1번 ' + tl + ' — 자기 낙샤트라 귀환일');
+      else add('good', 'tara', '타라 ' + (tara + 1) + '번 ' + tl);
+    }
+    // 3. Tithi / karana
+    var el = norm(lonOf('Moon', t, false) - lonOf('Sun', t, false));
+    var tithi = Math.floor(el / 12) + 1, ti = ((tithi - 1) % 15) + 1;
+    var paksha = tithi <= 15 ? '슈클라' : '크리슈나';
+    info.tithi = tithi;
+    if (on('tithi')) {
+      if (tithi === 30) add('bad', 'tithi', '아마바시야 (Amāvāsyā, 그믐)');
+      else if (ti === 4 || ti === 9 || ti === 14) add('bad', 'tithi', paksha + ' ' + ti + ' 티티 — 릭타 (Riktā)');
+      else if (ti === 8) add('warn', 'tithi', paksha + ' 8 티티 — 아쉬타미 (Aṣṭamī)');
+      else if ([2, 3, 5, 7, 10, 11, 13].indexOf(ti) >= 0) add('good', 'tithi', paksha + ' ' + ti + ' 티티');
+    }
+    var k = Math.floor(el / 6), kn;
+    if (k === 0) kn = 'Kiṃstughna'; else if (k >= 57) kn = ['Śakuni', 'Catuṣpada', 'Nāga'][k - 57]; else kn = KARANAS[(k - 1) % 7];
+    info.karana = kn;
+    if (on('karana') && kn === 'Viṣṭi') add('bad', 'karana', '비쉬티(바드라) 카라나 (Viṣṭi / Bhadrā)');
+    // 4. Nakshatra suitability for yātrā
+    if (on('nak')) {
+      var nl = NAKS[tn][0] + ' (' + NAKS[tn][1] + ')';
+      if (NAK_BAD.indexOf(tn) >= 0) add('bad', 'nak', '여행 금기 낙샤트라 ' + nl);
+      else if (NAK_WARN.indexOf(tn) >= 0) add('warn', 'nak', '거친 낙샤트라 ' + nl);
+      else if (NAK_GOOD.indexOf(tn) >= 0) add('good', 'nak', '여행 길성 낙샤트라 ' + nl);
+    }
+    // 5. Disha shoola
+    var wd = new Date(Date.UTC(y, m, d)).getUTCDay();
+    info.wd = wd;
+    if (on('shoola') && opts.dir && SHOOLA[wd] === opts.dir) add('bad', 'shoola', WEEK[wd] + '요일 ' + DIRK[opts.dir] + ' 방향 디샤 슐라 (Diśā Śūla)');
+    // 6. Retrogrades & stations
+    if (on('retro')) {
+      ['Mercury', 'Mars'].forEach(function (p) {
+        var v0 = speed(p, ms - 864e5), v1 = speed(p, ms + 864e5), v = speed(p, ms);
+        if ((v0 < 0) !== (v1 < 0)) add('bad', 'retro', PNAME[p] + ' 정지(스테이션) — ' + (v1 < 0 ? '역행 시작' : '순행 전환'));
+        else if (v < 0) add('warn', 'retro', PNAME[p] + ' 역행 중 (Vakrī)');
+      });
+    }
+    // 7. Eclipses
+    if (on('eclipse')) {
+      ecl.forEach(function (e) {
+        var diff = Math.round((e.ms - ms) / 864e5);
+        var dd = Math.abs(e.ms - ms) / 864e5;
+        var lbl = (EKIND[e.kind] || '') + ' ' + e.type;
+        if (dd < 1) add('bad', 'eclipse', lbl + ' 당일 (Grahaṇa)');
+        else if (dd <= 3) add('warn', 'eclipse', lbl + ' ' + (diff > 0 ? diff + '일 전' : -diff + '일 후'));
+      });
+    }
+    // 8. Malefic transits over natal Moon / Lagna
+    if (on('malefic')) {
+      ['Mars', 'Saturn', 'Rahu'].forEach(function (p) {
+        var lp = lonOf(p, t, sid);
+        [['Moon', '출생 달'], ['Asc', '라그나'], ['Sun', '출생 태양']].forEach(function (q) {
+          var dlt = Math.abs(wrap180(lp - nat[q[0]]));
+          if (dlt <= 3) add('warn', 'malefic', '트랜싯 ' + PNAME[p] + '이(가) ' + q[1] + '과 합 (오브 ' + dlt.toFixed(1) + '°)');
+          else if (p === 'Mars' && Math.abs(dlt - 180) <= 3) add('warn', 'malefic', '트랜싯 화성이 ' + q[1] + '과 충 (오브 ' + Math.abs(dlt - 180).toFixed(1) + '°)');
+        });
+      });
+    }
+    // 9. Western void-of-course Moon at departure
+    if (on('voc')) {
+      var v = vocAt(ms);
+      if (v.voc) {
+        var u = new Date(v.until + opts.tz * 3600000);
+        add('warn', 'voc', '보이드 문 (서양식, 공전 중) — ~' + (u.getUTCMonth() + 1) + '/' + u.getUTCDate() + ' ' + u.getUTCHours() + '시경까지');
+      }
+    }
+
+    var bad = 0, warn = 0, good = 0;
+    flags.forEach(function (f) { if (f.lv === 'bad') bad++; else if (f.lv === 'warn') warn++; else good++; });
+    var order = { bad: 0, warn: 1, good: 2 };
+    flags.sort(function (a, b) { return order[a.lv] - order[b.lv]; });
+    return { y: y, m: m, d: d, flags: flags, bad: bad, warn: warn, good: good, score: good - warn - 3 * bad, info: info };
+  }
+
+  return {
+    SIGNS: SIGNS, NAKS: NAKS, PNAME: PNAME, PIAST: PIAST, WEEK: WEEK, VARA: VARA, DIRK: DIRK,
+    natal: natal, evalDay: evalDay, eclipses: eclipses, localMs: localMs, sign: sign, nak: nak, pada: pada,
+    fmtDeg: fmtDeg, lonOf: lonOf, mk: mk, ascendant: ascendant, ayanamsa: ayanamsa
+  };
+})();
+
+</script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var RULES = [
+    ['chandra', '찬드라 발라', 'Candra Bala · 8번째 라시(찬드라슈타마)', 'bad'],
+    ['tara', '타라 발라', 'Tārā Bala · 3·5·7번 타라', 'bad'],
+    ['tithi', '티티', 'Tithi · 릭타(4·9·14), 아마바시야', 'bad'],
+    ['nak', '낙샤트라', 'Nakṣatra · 여행 금기 별자리', 'bad'],
+    ['karana', '비쉬티 카라나', 'Viṣṭi (Bhadrā)', 'warn'],
+    ['shoola', '디샤 슐라', 'Diśā Śūla · 요일별 막힌 방향', 'bad'],
+    ['eclipse', '일식·월식', 'Grahaṇa · 당일 흉, 전후 3일 주의', 'bad'],
+    ['retro', '수성·화성 역행', 'Vakrī · 정지일 포함', 'warn'],
+    ['malefic', '흉성 트랜싯', '화성·토성·라후가 출생 달/라그나/태양 위', 'warn'],
+    ['voc', '보이드 문', '서양식 Void-of-course Moon', 'warn']
+  ];
+  var KEY = 'yatra-muhurta-v1';
+  var state = { rules: {}, sel: null, days: [], win: null };
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function iso(y, m, d) { return y + '-' + pad(m + 1) + '-' + pad(d); }
+  function todayKST() { var n = new Date(Date.now() + 9 * 3600000); return [n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()]; }
+  function addDays(y, m, d, k) { var t = new Date(Date.UTC(y, m, d + k)); return [t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate()]; }
+
+  function load() {
+    var s = null;
+    try { s = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { }
+    var t = todayKST(), e = addDays(t[0], t[1], t[2], 89);
+    var d = {
+      bDate: '1990-08-15', bTime: '10:30', bTz: 9, bLat: 37.5665, bLon: 126.978,
+      tFrom: iso(t[0], t[1], t[2]), tTo: iso(e[0], e[1], e[2]), tLen: 4, tTime: '09:00', tTz: 9, tDir: '', tZod: 'sid', tRet: true,
+      rules: {}, example: true
+    };
+    if (s) { for (var k in s) d[k] = s[k]; }
+    RULES.forEach(function (r) { if (!d.rules[r[0]]) d.rules[r[0]] = r[3]; });
+    return d;
+  }
+  function save(example) {
+    var o = { example: example };
+    ['bDate', 'bTime', 'bTz', 'bLat', 'bLon', 'tFrom', 'tTo', 'tLen', 'tTime', 'tTz', 'tDir', 'tZod'].forEach(function (k) { o[k] = $(k).value; });
+    o.tRet = $('tRet').checked; o.rules = state.rules;
+    try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) { }
+  }
+
+  function fill(d) {
+    ['bDate', 'bTime', 'bTz', 'bLat', 'bLon', 'tFrom', 'tTo', 'tLen', 'tTime', 'tTz', 'tDir', 'tZod'].forEach(function (k) { $(k).value = d[k]; });
+    $('tRet').checked = !!d.tRet;
+    state.rules = d.rules;
+    $('exampleTag').innerHTML = d.example ? '<span class="tag">예시 데이터 · 본인 정보로 바꿔 주세요</span>' : '';
+    renderRules();
+  }
+
+  function renderRules() {
+    var box = $('rules'); box.innerHTML = '';
+    RULES.forEach(function (r) {
+      var row = document.createElement('div'); row.className = 'rule';
+      row.innerHTML = '<div><b>' + r[1] + '</b><span class="i">' + r[2] + '</span></div>';
+      var seg = document.createElement('div'); seg.className = 'seg'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', r[1]);
+      [['bad', '흉'], ['warn', '주의'], ['off', '끔']].forEach(function (o) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = o[0]; b.textContent = o[1];
+        b.setAttribute('aria-pressed', state.rules[r[0]] === o[0] ? 'true' : 'false');
+        b.onclick = function () { state.rules[r[0]] = o[0]; renderRules(); };
+        seg.appendChild(b);
+      });
+      row.appendChild(seg); box.appendChild(row);
+    });
+  }
+
+  function readBirth() {
+    var dt = $('bDate').value.split('-'), tm = $('bTime').value.split(':');
+    var b = { y: +dt[0], m: +dt[1] - 1, d: +dt[2], hh: +tm[0], mi: +tm[1], tz: +$('bTz').value, lat: +$('bLat').value, lon: +$('bLon').value };
+    if (!dt[0] || isNaN(b.y) || isNaN(b.hh) || isNaN(b.lat) || isNaN(b.lon)) throw '출생 날짜·시각·위치를 모두 입력해 주세요.';
+    if (Math.abs(b.lat) > 66) throw '위도는 -66~66 사이여야 라그나 계산이 가능합니다.';
+    return b;
+  }
+
+  function renderNatal(nat, sid) {
+    var rows = ['Asc', 'Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Rahu', 'Ketu'];
+    var h = '<tr><th>행성</th><th>라시</th><th>도수</th><th>낙샤트라 (파다)</th></tr>';
+    rows.forEach(function (p) {
+      var l = nat[p], lS = sid ? l : null;
+      var nk = sid ? TM.NAKS[TM.nak(l)][1] + ' (' + TM.pada(l) + ')' : '—';
+      h += '<tr><td>' + TM.PNAME[p] + ' <span class="i">' + TM.PIAST[p] + '</span></td><td>' + TM.SIGNS[TM.sign(l)][0] + ' <span class="i">' + TM.SIGNS[TM.sign(l)][1] + '</span></td><td>' + TM.fmtDeg(l) + '</td><td>' + nk + '</td></tr>';
+    });
+    $('natalTbl').innerHTML = h;
+  }
+
+  function cls(r) { return r.bad ? 'x' : r.score >= 2 ? 'g' : r.score >= 0 ? 'n' : 'w'; }
+
+  function run(example) {
+    $('err').textContent = '';
+    try {
+      if (typeof Astronomy === 'undefined') throw '천문 계산 라이브러리를 불러오지 못했습니다. 네트워크 연결을 확인하고 새로고침해 주세요.';
+      var b = readBirth(), sid = $('tZod').value === 'sid';
+      var nat = TM.natal(b, sid); renderNatal(nat, sid);
+      var f = $('tFrom').value.split('-').map(Number), t = $('tTo').value.split('-').map(Number);
+      var from = Date.UTC(f[0], f[1] - 1, f[2]), to = Date.UTC(t[0], t[1] - 1, t[2]);
+      if (isNaN(from) || isNaN(to) || to < from) throw '검색 기간을 확인해 주세요. 종료일이 시작일보다 뒤여야 합니다.';
+      var n = Math.round((to - from) / 864e5) + 1;
+      if (n > 400) throw '검색 기간은 400일 이내로 잡아 주세요.';
+      var tm = $('tTime').value.split(':');
+      var opts = { sid: sid, tz: +$('tTz').value || 0, hh: +tm[0] || 0, mi: +tm[1] || 0, dir: $('tDir').value, rules: state.rules };
+      var ecl = TM.eclipses(from, to);
+      var days = [];
+      for (var i = 0; i < n; i++) { var d = new Date(from + i * 864e5); days.push(TM.evalDay(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), nat, opts, ecl)); }
+      state.days = days; state.win = null; state.sel = null;
+      rankWindows();
+      renderCal();
+      var first = state.wins.length ? state.wins[0].i : 0;
+      selectWin(state.wins.length ? 0 : -1);
+      showDay(first);
+      save(!!example);
+      if (!example) $('exampleTag').innerHTML = '';
+    } catch (e) {
+      $('err').textContent = typeof e === 'string' ? e : '계산 중 문제가 생겼습니다: ' + e.message;
+    }
+  }
+
+  function rankWindows() {
+    var L = Math.max(1, +$('tLen').value || 1), ret = $('tRet').checked, D = state.days, wins = [];
+    for (var i = 0; i + L - 1 < D.length; i++) {
+      var dep = D[i], back = D[i + L - 1];
+      if (dep.bad) continue;
+      if (ret && L > 1 && back.bad) continue;
+      var eclIn = false;
+      for (var j = i; j < i + L; j++) if (D[j].flags.some(function (f) { return f.rule === 'eclipse' && f.lv === 'bad'; })) eclIn = true;
+      if (eclIn) continue;
+      wins.push({ i: i, j: i + L - 1, s: dep.score * 2 + (L > 1 ? back.score : 0) });
+    }
+    wins.sort(function (a, b) { return b.s - a.s || a.i - b.i; });
+    state.wins = wins;
+    var bad = D.filter(function (d) { return d.bad; }).length, good = D.filter(function (d) { return !d.bad && d.score >= 2; }).length;
+    $('stats').innerHTML =
+      '<div class="stat"><div class="n">' + D.length + '</div><div class="l">검색한 날</div></div>' +
+      '<div class="stat bad"><div class="n">' + bad + '</div><div class="l">흉일 제외</div></div>' +
+      '<div class="stat good"><div class="n">' + good + '</div><div class="l">길일</div></div>' +
+      '<div class="stat ok"><div class="n">' + wins.length + '</div><div class="l">가능한 출발일</div></div>';
+    $('resSub').textContent = L + '일 여행 · 상위 5개';
+    var box = $('wins'); box.innerHTML = '';
+    if (!wins.length) { box.innerHTML = '<div class="empty">조건을 모두 통과하는 일정이 없습니다. 규칙 일부를 “주의”로 낮추거나 기간을 넓혀 보세요.</div>'; return; }
+    wins.slice(0, 5).forEach(function (w, k) {
+      var a = D[w.i], z = D[w.j];
+      var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'win';
+      var goods = a.flags.filter(function (f) { return f.lv === 'good'; }).length, warns = a.flags.filter(function (f) { return f.lv === 'warn'; }).length;
+      btn.innerHTML = '<div class="rk">' + (k + 1) + '</div><div><div class="dt">' + (a.m + 1) + '/' + a.d + ' (' + TM.WEEK[a.info.wd] + ') 출발' + (w.j > w.i ? ' → ' + (z.m + 1) + '/' + z.d + ' (' + TM.WEEK[z.info.wd] + ') 귀국' : '') + '</div>' +
+        '<div class="sub">' + TM.NAKS[a.info.nak][0] + ' · ' + tithiName(a.info.tithi) + ' · 길 ' + goods + ' / 주의 ' + warns + '</div></div><div class="sc">' + (w.s > 0 ? '+' : '') + w.s + '</div>';
+      btn.onclick = function () { selectWin(k); showDay(w.i); };
+      box.appendChild(btn);
+    });
+  }
+
+  function tithiName(t) { return (t <= 15 ? '슈클라 ' : '크리슈나 ') + (t === 30 ? '30' : ((t - 1) % 15 + 1)) + ' 티티'; }
+
+  function selectWin(k) { state.win = k >= 0 && state.wins[k] ? state.wins[k] : null; renderCal(); }
+
+  function renderCal() {
+    var D = state.days, box = $('cal'); box.innerHTML = '';
+    if (!D.length) return;
+    var cur = null, grid = null;
+    D.forEach(function (r, i) {
+      var key = r.y + '-' + r.m;
+      if (key !== cur) {
+        cur = key;
+        var mo = document.createElement('div'); mo.className = 'month';
+        mo.innerHTML = '<h3>' + r.y + '년 ' + (r.m + 1) + '월</h3>';
+        grid = document.createElement('div'); grid.className = 'cal';
+        TM.WEEK.forEach(function (w) { var e = document.createElement('div'); e.className = 'wd'; e.textContent = w; grid.appendChild(e); });
+        for (var p = 0; p < r.info.wd; p++) { var e = document.createElement('div'); e.className = 'day pad'; grid.appendChild(e); }
+        mo.appendChild(grid); box.appendChild(mo);
+      }
+      var c = document.createElement('button'); c.type = 'button';
+      var inTrip = state.win && i >= state.win.i && i <= state.win.j;
+      c.className = 'day ' + cls(r) + (inTrip ? ' trip' : '') + (state.sel === i ? ' sel' : '');
+      c.setAttribute('aria-label', (r.m + 1) + '월 ' + r.d + '일 ' + ({ x: '흉일', g: '길일', n: '보통', w: '주의' })[cls(r)]);
+      c.innerHTML = '<span class="dn">' + r.d + '</span><span class="mk">' + (r.bad ? '흉 ' + r.bad : (r.score > 0 ? '+' : '') + r.score) + '</span>';
+      c.onclick = function () { showDay(i); };
+      grid.appendChild(c);
+    });
+  }
+
+  function showDay(i) {
+    var r = state.days[i]; if (!r) return;
+    state.sel = i; renderCal();
+    var c = cls(r), vt = { x: '흉일 · 출발 비추천', w: '주의 많음', n: '보통', g: '길일' }[c];
+    var sid = $('tZod').value === 'sid', I = r.info;
+    var h = '<div class="head"><h2 style="margin:0">' + r.y + '. ' + (r.m + 1) + '. ' + r.d + ' (' + TM.WEEK[I.wd] + ')</h2><span class="verdict v-' + c + '">' + vt + '</span></div>';
+    h += '<p class="note" style="margin:4px 0 0">' + $('tTime').value + ' 출발 기준 · ' + TM.VARA[I.wd] + '</p>';
+    h += '<div class="panch">' +
+      '<div><span>트랜싯 달</span>' + TM.SIGNS[TM.sign(I.moon)][0] + ' ' + TM.fmtDeg(I.moon) + '</div>' +
+      '<div><span>낙샤트라</span>' + TM.NAKS[I.nak][0] + ' <span style="display:inline">' + TM.NAKS[I.nak][1] + '</span></div>' +
+      '<div><span>티티</span>' + tithiName(I.tithi) + '</div>' +
+      '<div><span>카라나</span>' + I.karana + '</div>' +
+      '<div><span>출생 달 기준</span>' + I.house + '번째 라시</div>' +
+      '<div><span>태양</span>' + TM.SIGNS[TM.sign(I.sun)][0] + ' ' + TM.fmtDeg(I.sun) + '</div>' +
+      '</div>';
+    var lvK = { bad: '흉', warn: '주의', good: '길' };
+    h += r.flags.length ? '<ul class="flags">' + r.flags.map(function (f) { return '<li class="' + f.lv + '"><em>' + lvK[f.lv] + '</em>' + f.txt + '</li>'; }).join('') + '</ul>' : '<p class="note">특별히 걸리는 규칙이 없습니다.</p>';
+    $('detail').innerHTML = h;
+  }
+
+  // background stars
+  function stars() {
+    var cv = $('stars'), cx = cv.getContext('2d'), dpr = Math.min(2, window.devicePixelRatio || 1);
+    function draw() {
+      cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; cx.clearRect(0, 0, cv.width, cv.height);
+      var seed = 7; function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+      var n = Math.floor(innerWidth * innerHeight / 5000);
+      for (var i = 0; i < n; i++) { var r = rnd() * 1.2 * dpr + .2; cx.globalAlpha = .15 + rnd() * .5; cx.fillStyle = rnd() > .85 ? '#d8b46a' : '#cfd3ea'; cx.beginPath(); cx.arc(rnd() * cv.width, rnd() * cv.height, r, 0, 6.283); cx.fill(); }
+    }
+    draw(); addEventListener('resize', draw);
+  }
+
+  var d0 = load(); fill(d0); stars();
+  $('bCity').onchange = function () { var v = this.value; if (v) { var p = v.split(','); $('bLat').value = p[0]; $('bLon').value = p[1]; } };
+  $('run').onclick = function () { run(false); };
+  $('tLen').onchange = $('tRet').onchange = function () { if (state.days.length) { rankWindows(); selectWin(state.wins.length ? 0 : -1); } };
+  run(d0.example);
+})();
+</script>
+
+<footer class="gaon-foot">© 가온 · <a href="https://www.instagram.com/tantan.life/" target="_blank" rel="noopener">Instagram @tantan.life</a> · <a href="https://the-path-of-life.tistory.com/" target="_blank" rel="noopener">Blog</a><br>입력한 정보는 이 기기 안에만 저장되고 서버로 보내지지 않아요.</footer>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))}</script>
+</body>
+</html>
