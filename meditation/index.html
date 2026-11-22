@@ -292,7 +292,7 @@ function findJeol(lonTarget, approxDate){
 
 // opts: {hourKnown, lon(경도), timeMode:'true'|'mean'|'none', jasi:'23'|'00'}
 function calcSaju(y,m,d,h,mi,opts){
-  const o = Object.assign({hourKnown:true, lon:126.98, timeMode:'mean', jasi:'23'}, opts||{});
+  const o = Object.assign({hourKnown:true, lon:126.98, timeMode:'fixed30', jasi:'23'}, opts||{});
   const hh = o.hourKnown ? h : 12, mm = o.hourKnown ? mi : 0;
   const utc = seoulLocalToUtc(y,m,d,hh,mm);
   const birth = new Date(utc);
@@ -487,6 +487,7 @@ function render(r, label, input){
     let t=`${input.time} 입력`;
     if(dst!==0) t+=` → 당시 표준시 차이 ${signed(-dst)}`;
     if(r.mode==='true') t+=` → 진태양시 ${hm(r.solarLocal.h,r.solarLocal.m)} (경도 ${signed((r.lon-135)*4)}, 균시차 ${signed(r.eotMin)})`;
+    else if(r.mode==='fixed30') t+=` → 30분 보정 ${hm(r.solarLocal.h,r.solarLocal.m)} (동경 127.5° 기준)`;
     else if(r.mode==='mean') t+=` → 지방평균시 ${hm(r.solarLocal.h,r.solarLocal.m)} (경도 ${signed((r.lon-135)*4)})`;
     else t+=` → 보정 없이 ${hm(r.solarLocal.h,r.solarLocal.m)}`;
     rows.push(['시각',t]);

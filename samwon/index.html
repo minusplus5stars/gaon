@@ -978,7 +978,7 @@ function renderSaju(sj) {
 
 function sajuText(sj) {
   const P = sj.pillars, I = sj.info, now = new Date(), cur = curDaeun(sj, now), se = seun(now);
-  const L = ['[사주 원국] (절기·입춘 기준, ' + ({mean:'경도 보정 지방평균시',true:'경도+균시차 진태양시',none:'표준시'}[$('tcorr').value]) + ', 자시: ' + ($('zi').value === 'split' ? '야자시' : '23시 날짜 변경') + ')'];
+  const L = ['[사주 원국] (절기·입춘 기준, ' + ({fixed30:'30분 고정 보정',mean:'경도 보정 지방평균시',true:'경도+균시차 진태양시',none:'표준시'}[$('tcorr').value]) + ', 자시: ' + ($('zi').value === 'split' ? '야자시' : '23시 날짜 변경') + ')'];
   for (const k of ['year', 'month', 'day', 'hour'])
     L.push(`- ${PILLAR_KO[k]}: ${gzHan(P[k])}(${gzKo(P[k])}) 천간 ${I[k].stemGod} / 지지 ${I[k].branchGod}, 지장간 ${I[k].hidden.map(s => E.GAN[s]).join('')}, 12운성 ${I[k].stage}`);
   L.push(`일간: ${E.GAN[P.day.s]}${E.EL_HAN[E.GAN_EL[P.day.s]]}. 오행 개수(천간+지지 본기): ` + sj.count.map((n, e) => `${E.EL[e]} ${n}`).join(', ') + `. 공망 ${sj.kong.map(b => E.ZHI[b]).join('')}`);
