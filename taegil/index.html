@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="가온">
 <script src="/lib/gaon-time.js"></script>
+<script src="/lib/gaon-yongsin.js"></script>
 <style>.gaon-time-help{display:block;font-size:11.5px;line-height:1.45;opacity:.75;font-weight:400;margin-top:2px}</style>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -197,7 +198,7 @@ tr.best td{background:var(--soft)}
 
   <div class="foot">
     <p>절기는 태양 황경, 손없는날은 합삭(신월) 시각으로 직접 계산합니다. 자시는 23시부터 다음 날로 봅니다. 1987–88년 서머타임과 1954–61년 표준시는 자동 반영됩니다.</p>
-    <p>용신은 오행 비중과 월령·조후를 단순화한 추정입니다. 상담 시 원국 판단으로 보정해 쓰세요.</p>
+    <p>강약·용신은 가온 공통 간이 판정이에요. 월지 ×3·일지 ×1.5 가중치로 비겁·인성 비율을 보고(42% 미만 신약, 55% 초과 신강), 방합·삼합·반합과 월령이 돕는 천간합을 반영해요. 상담 시 원국 판단으로 보정해 쓰세요.</p>
     <p>입력한 정보는 이 기기 안에만 저장되고 서버로 보내지지 않아요.</p>
     <p>© 가온 · <a href="https://www.instagram.com/tantan.life/" target="_blank" rel="noopener" style="color:var(--muted)">Instagram @tantan.life</a> · <a href="https://the-path-of-life.tistory.com/" target="_blank" rel="noopener" style="color:var(--muted)">Blog</a></p>
   </div>
@@ -275,14 +276,8 @@ function analyze(c){
  const w=[0,0,0,0,0];[c.yStem,c.mStem,c.dStem,c.hStem].forEach(s=>{if(s!==null)w[STEM_EL[s]]+=1});
  [[c.yBr,1],[c.mBr,2],[c.dBr,1.2],[c.hBr,1]].forEach(([b,x])=>{if(b!==null)w[BR_EL[b]]+=x});
  const tot=w.reduce((a,b)=>a+b,0),de=STEM_EL[c.dStem],g=i=>(de+i)%5;c.w=w;c.tot=tot;c.de=de;
- c.ratio=(w[de]+w[g(4)])/tot;c.strong=c.ratio>=0.48;const fav=[0,0,0,0,0];
- if(c.strong){const cand=[1,2,3].map(g).sort((a,b)=>w[a]-w[b]);fav[cand[0]]=1;fav[cand[1]]=0.6;fav[cand[2]]=0.3;
-  if(w[g(4)]>w[de]){fav[g(4)]=-1;fav[de]=-0.7}else{fav[de]=-1;fav[g(4)]=-0.7}}
- else{const gw=g(3),useRes=w[gw]>=w[g(2)]&&w[gw]>=w[g(1)];const pr=useRes?g(4):(w[g(4)]<=w[de]?g(4):de),ot=pr===de?g(4):de;
-  fav[pr]=1;fav[ot]=0.6;const bad=[1,2,3].map(g).sort((a,b)=>w[b]-w[a]);fav[bad[0]]=-1;fav[bad[1]]=-0.6;fav[bad[2]]=-0.3}
- if([5,6,7].includes(c.mBr)){fav[4]=Math.min(1,fav[4]+0.4);if(fav[1]>0)fav[1]-=0.3}
- if([11,0,1].includes(c.mBr)){fav[1]=Math.min(1,fav[1]+0.4);if(fav[4]>0)fav[4]-=0.3}
- c.fav=fav;c.yong=argmax(fav);c.gi=argmin(fav);
+ const A=GaonYongsin.analyze({yS:c.yStem,yB:c.yBr,mS:c.mStem,mB:c.mBr,dS:c.dStem,dB:c.dBr,hS:c.hStem,hB:c.hBr}); // 가온 공통 판정
+ c.ys=A;c.ratio=A.ratio;c.state=A.state;c.strong=A.state==='신강';c.fav=A.fav;c.yong=A.yong;c.gi=A.gi;
  const gr=[0,0,0,0,0],add=(s,x)=>gr[mod(STEM_EL[s]-de,5)]+=x;
  [c.yStem,c.mStem,c.hStem].forEach(s=>{if(s!==null)add(s,1)});
  [[c.yBr,1],[c.mBr,1.5],[c.dBr,1.2],[c.hBr,1]].forEach(([b,x])=>{if(b!==null)add(BR_MAIN[b],x)});
@@ -420,7 +415,7 @@ function pillarsHTML(c){const col=(lab,s,b,isDay)=>`<div class="pc"><div class="
  return `<div class="pillars">${col('시',c.hStem,c.hBr)}${col('일',c.dStem,c.dBr,true)}${col('월',c.mStem,c.mBr)}${col('년',c.yStem,c.yBr)}</div>`}
 function elHTML(c){return `<div class="elbar">${c.w.map((x,i)=>`<i class="b${i}" style="width:${x/c.tot*100}%"></i>`).join('')}</div><div class="ellegend">${c.w.map((x,i)=>`<span><b class="e${i}">${EL_H[i]}</b> ${Math.round(x/c.tot*100)}%</span>`).join('')}</div>`}
 const chipCls=v=>v>0?'g':v<=-10?'b':v<0?'w':'';
-function personSummary(c){return `${STEMS[c.dStem]}${EL_K[c.de]} 일간 · ${c.strong?'신강':'신약'} · 용신 ${EL_H[c.yong]}(${EL_K[c.yong]})`+(c.kua?` · 본명괘 ${c.kua} (${[1,3,4,9].includes(c.kua)?'동사택':'서사택'})`:'')}
+function personSummary(c){return `${STEMS[c.dStem]}${EL_K[c.de]} 일간 · ${c.state} · 용신 ${EL_H[c.yong]}(${EL_K[c.yong]})`+(c.ys.combos.length?` · ${GaonYongsin.combosText(c.ys)}`:'')+(c.kua?` · 본명괘 ${c.kua} (${[1,3,4,9].includes(c.kua)?'동사택':'서사택'})`:'')}
 
 function renderMove(R){let h='';
  const dirSel=S.move.dir,best=[...R.dirs].filter(d=>!d.dj&&!d.ss).sort((a,b)=>b.score-a.score)[0];
@@ -452,7 +447,7 @@ function renderBirth(R){const exHTML=R.excluded.length?`<div class="sec"><h3>흉
   const body=`<div class="bars">${bar('오행 조화',r.bs)}${bar('대운',r.dw.score)}${bar('일주(일운)',Math.round(r.ds.score))}${bar('부모 궁합',r.par)}</div>
   ${pillarsHTML(c)}${elHTML(c)}
   <div class="chips">${r.ds.notes.map(n=>`<span class="chip ${chipCls(n[1])}">${esc(n[0])}</span>`).join('')}</div>
-  <div class="para"><h3>성격</h3><p>${DM_TXT[c.dStem]} ${GOD_TXT[r.ds.god]}</p><p class="note">${c.strong?'신강':'신약'} 사주로 용신은 ${EL_H[c.yong]}(${EL_K[c.yong]}). 도움 색·환경은 ${EL_COLOR[c.yong]}.</p></div>
+  <div class="para"><h3>성격</h3><p>${DM_TXT[c.dStem]} ${GOD_TXT[r.ds.god]}</p><p class="note">${c.state} 사주로 용신은 ${EL_H[c.yong]}(${EL_K[c.yong]}). 도움 색·환경은 ${EL_COLOR[c.yong]}.</p></div>
   <div class="para"><h3>진로</h3><p>${GRP[gs[0]]} 기운이 가장 두드러져 ${CAREER[gs[0]]}에 잘 맞아요. 다음으로 ${GRP[gs[1]]} 기운이 받쳐 줘서 ${CAREER[gs[1]].split('처럼')[0]} 쪽 재능도 함께 살릴 수 있어요.</p></div>
   <div class="para"><h3>대운</h3>${r.dw.one?dwHTML(r.dw.one,''):dwHTML(r.dw.both[0],'남아 ')+dwHTML(r.dw.both[1],'여아 ')}<p style="margin-top:6px">${dwSummary(r.dw.one||r.dw.both[0])}</p></div>
   <div class="sub2">${[['엄마',r.pm],['아빠',r.pf]].map(([l,p])=>`<div class="mfit"><div class="h">${l}와의 합 <span>${Math.round(p.score)}</span></div><ul>${p.lines.map(x=>`<li>${esc(x[0])} ${x[1]>0?'(+)':x[1]<0?'(−)':''}</li>`).join('')}</ul><p class="para" style="margin:4px 0 0">${p.relTxt}</p><p class="note" style="margin:2px 0 0">소통: ${p.tip}</p></div>`).join('')}</div>`;

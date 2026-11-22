@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="가온">
 <script src="/lib/gaon-time.js"></script>
+<script src="/lib/gaon-yongsin.js"></script>
 <style>.gaon-time-help{display:block;font-size:11.5px;line-height:1.45;opacity:.75;font-weight:400;margin-top:2px}</style>
 
 <style>
@@ -242,7 +243,7 @@ footer p{margin:0 0 6px}
   <div id="out" class="wrap"></div>
 
   <footer>
-    <p>강약과 용신은 월지에 가중치를 둔 간이 판정입니다. 격국·합충·지장간까지 본 판단이 다르면 용신 칩에서 직접 고르세요. 처방과 지역 점수가 그 기준으로 다시 계산됩니다.</p>
+    <p>강약과 용신은 가온 공통 간이 판정입니다. 월지 ×3·일지 ×1.5 가중치로 비겁·인성 비율을 보고(42% 미만 신약, 55% 초과 신강), 방합·삼합이 완성되면 그 지지를 국의 오행으로, 왕지를 낀 붙은 반합은 절반만, 천간합은 월령이 도울 때만 화한 것으로 계산합니다. 격국·충·지장간까지 본 판단이 다르면 용신 칩에서 직접 고르세요. 처방과 지역 점수가 그 기준으로 다시 계산됩니다.</p>
     <p>지리오행은 시·군·구의 산세(산림·암봉), 물(강·호수), 평야·분지, 도심·공단 성격에, 동·읍·면마다 따로 잰 해안선 비율과 도심·읍면 구분을 더해 오행으로 환산한 값입니다. 동 단위의 고도·물길은 지형 데이터를 붙이면 더 정밀해집니다. 같은 구 안에서도 산 아래와 물가는 다르니, 동네를 볼 때 실제 지형을 함께 살피세요.</p>
     <p>이사·계약 같은 결정은 실제 조건과 함께 따져 보세요.</p>
   </footer>
@@ -362,18 +363,9 @@ function analyze(p){
   const chars=[[p.yS,"s"],[p.yB,"b"],[p.mS,"s"],[p.mB,"b"],[p.dS,"s"],[p.dB,"b"]];
   if(p.hS!==null) chars.push([p.hS,"s"],[p.hB,"b"]);
   chars.forEach(([v,t])=>count[t==="s"?sEl(v):bEl(v)]++);
-  const pos=[[sEl(p.yS),1],[bEl(p.yB),1],[sEl(p.mS),1],[bEl(p.mB),3],[bEl(p.dB),1.5]];
-  if(p.hS!==null) pos.push([sEl(p.hS),1],[bEl(p.hB),1]);
-  let sup=0,tot=0;pos.forEach(([e,w])=>{tot+=w;if(e===de||e===res)sup+=w});
-  const ratio=sup/tot; const w=[0,0,0,0,0];pos.forEach(([e,wt])=>w[e]+=wt);w[de]+=1;
-  let state,yong,hee;
-  if(ratio<0.42){state="신약";yong=(w[res]>=4)?de:res;hee=yong===res?de:res}
-  else if(ratio>0.55){state="신강";const c=[(de+1)%5,(de+2)%5,(de+3)%5].sort((a,b)=>w[a]-w[b]);yong=c[0];hee=(yong+4)%5;if(hee===de||hee===res)hee=(yong+1)%5}
-  else{state="중화";yong=[0,1,2,3,4].sort((a,b)=>w[a]-w[b])[0];hee=(yong+4)%5}
-  let johu=null;
-  if([11,0,1].includes(p.mB)&&count[1]<=1) johu={e:1,t:"겨울(亥子丑월) 생이라 원국이 찹니다. 용신과 별개로 볕과 온기를 꼭 더하세요."};
-  if([5,6,7].includes(p.mB)&&count[4]<=1) johu={e:4,t:"여름(巳午未월) 생이라 원국이 뜨겁고 마릅니다. 용신과 별개로 습도와 서늘함을 더하세요."};
-  return {dm,de,count,ratio,state,yong,hee,johu};
+  const A=GaonYongsin.analyze(p); // 가온 공통 판정 (합 반영)
+  const {ratio,state,yong,hee,johu,combos}=A;
+  return {dm,de,count,ratio,state,yong,hee,johu,combos};
 }
 function favMap(a){const G=(a.yong+3)%5,gu=(G+4)%5;const f=[0,0,0,0,0];
   f[gu]=-0.5; f[G]=-1; f[a.hee]=0.6; f[a.yong]=1; return f;}
@@ -609,7 +601,7 @@ function render(){
       <div class="vbox"><span class="eyebrow">일간</span><span class="big">${STEM_H[a.dm]} ${STEM_K[a.dm]}${EL[a.de]}</span><span class="note">${DM_DESC[a.dm]}</span></div>
       <div class="vbox"><span class="eyebrow">강약</span><span class="big">${a.state}</span>
         <div class="meter"><span class="zone"></span><i style="left:calc(${Math.min(97,Math.max(0,a.ratio*100)).toFixed(0)}% - 1px)"></i></div>
-        <div class="meter-l"><span>약</span><span>중화</span><span>강</span></div><span class="note">${stateTxt}</span></div>
+        <div class="meter-l"><span>약</span><span>중화</span><span>강</span></div><span class="note">${stateTxt}</span>${a.combos&&a.combos.length?`<span class="note">합: ${a.combos.map(c=>c.text).join(" · ")}</span>`:""}</div>
     </div>
     <div class="sheet stack" style="gap:10px">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
