@@ -272,7 +272,7 @@ details.cur summary b::after { content: "현재"; margin-left: 8px; font-size: 1
       <label>이름<input id="nm" value="예시 차트"></label>
       <label>성별<select id="gender"><option value="F">여성</option><option value="M">남성</option></select></label>
       <label>생년월일 (양력)<input id="dt" type="date" value="1985-03-14" required></label>
-      <label>태어난 시각<input id="tm" type="time" value="11:30" required></label>
+      <label>태어난 시각<input id="tm" type="time" value="11:30" required><span style="display:flex;align-items:center;gap:6px;font-size:13px;margin-top:2px"><input type="checkbox" id="unk" style="width:auto;margin:0"> 시간 모름</span></label>
       <label>출생지<select id="city"></select></label>
       <label class="coords" id="latL" hidden>위도<input id="lat" type="number" step="0.0001" value="37.5665"></label>
       <label class="coords" id="lonL" hidden>경도<input id="lon" type="number" step="0.0001" value="126.978"></label>
@@ -844,8 +844,9 @@ function drawSI(box, signOf, degOf, lagnaSign, centerHTML, ch) {
 function render() {
   $('msg').textContent = '';
   const [y, mo, d] = $('dt').value.split('-').map(Number);
-  const [h, mi] = $('tm').value.split(':').map(Number);
-  if (!y || isNaN(h)) { $('msg').textContent = '생년월일과 태어난 시각을 모두 입력해 주세요.'; return; }
+  const UNK = window.UNK = $('unk').checked; // 시간 모름: 정오로 일주만 세우고 시각이 필요한 부분은 빼기
+  const [h, mi] = UNK ? [12, 0] : $('tm').value.split(':').map(Number);
+  if (!y || isNaN(h)) { $('msg').textContent = '생년월일과 태어난 시각을 입력하거나 \'시간 모름\'을 체크해 주세요.'; return; }
   const c = CITIES[sel.value];
   const lat = c[1] ?? parseFloat($('lat').value), lon = c[2] ?? parseFloat($('lon').value);
   if (isNaN(lat) || isNaN(lon)) { $('msg').textContent = '위도와 경도를 숫자로 입력해 주세요.'; return; }
@@ -864,22 +865,24 @@ function render() {
   const hm = lt.getUTCHours() * 60 + lt.getUTCMinutes();
   const lunarBase = new Date(localMs + (hm >= 1380 && ziMode === 'day23' ? 86400000 : 0));
   const lunar = E.toLunar(lunarBase.getUTCFullYear(), lunarBase.getUTCMonth() + 1, lunarBase.getUTCDate());
-  const zw = lunar ? E.ziwei(lunar, sj.pillars.hour.b, gender) : null;
+  const zw = lunar && !UNK ? E.ziwei(lunar, sj.pillars.hour.b, gender) : null;
   zSel = zw ? zw.ming : null;
 
   const tzNote = offset === 540 ? '' : (offset === 510 ? ' · 당시 표준시 UTC+8:30 적용' : ' · 서머타임 적용');
   const corrMin = Math.round((localMs - date.getTime()) / 60000 - offset);
   $('meta').innerHTML = (name === '예시 차트' ? '<span class="example">예시 데이터</span>' : '') +
-    `<span><b>${esc(name)}</b> · ${gender === 'F' ? '여' : '남'}</span><span>${y}.${mo}.${d} ${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')} (${fmtOff(offset)}${tzNote})</span>` +
+    `<span><b>${esc(name)}</b> · ${gender === 'F' ? '여' : '남'}</span><span>${y}.${mo}.${d} ${UNK ? '시간 모름 (시주·라그나·명반 제외)' : `${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')} (${fmtOff(offset)}${tzNote})`}</span>` +
     (lunar ? `<span>음력 ${lunar.year}.${lunar.month}.${lunar.day}${lunar.leap ? ' (윤달)' : ''}</span>` : '') +
-    `<span>사주 기준 ${hhmm(localMs)}${corrMin ? ` (${corrMin > 0 ? '+' : '−'}${Math.abs(corrMin)}분)` : ''}</span>` +
+    (UNK ? '' : `<span>사주 기준 ${hhmm(localMs)}${corrMin ? ` (${corrMin > 0 ? '+' : '−'}${Math.abs(corrMin)}분)` : ''}</span>`) +
     `<span>${c[0].startsWith('직접') ? '' : c[0] + ' · '}${lat.toFixed(2)}N ${lon.toFixed(2)}E</span><span class="xp">적도 아야남샤 ${dms(ch.eqAyanamsa)}</span>`;
 
   natal = { lat, lon, lagnaSign: ch.lagnaSign, moonSign: ch.rows.Moon.sign };
   S = { ch, sj, zw, lunar, name, gender, birthUTC: date.getTime(), localMs };
   renderVedic(ch, name);
   renderSaju(sj);
-  renderZiwei(zw, lunar, name, gender);
+  if (!UNK) renderZiwei(zw, lunar, name, gender);
+  unknownNotice('p-vedic', UNK, '베딕 차트는 태어난 시각으로 라그나(상승궁)와 하우스를 정하고, 달의 위치로 다샤를 계산해요. 시간을 모르면 정확하게 세울 수 없어서 보여 드리지 않아요.');
+  unknownNotice('p-ziwei', UNK, '자미두수 명반은 태어난 시(時)로 명궁을 정해요. 시간을 모르면 명반을 세울 수 없어서 보여 드리지 않아요.');
   renderTrio();
   const metaLine = S.metaLine = `${name} (${gender === 'F' ? '여' : '남'}), 양력 ${y}.${mo}.${d} ${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')} (${fmtOff(offset)}), ${c[0]}`;
   texts = { V: buildChartText(ch, metaLine), S: sajuText(sj), Z: zw ? ziweiText(zw, lunar) : '' };
@@ -940,29 +943,30 @@ function seun(now = new Date()) { const Y = E.solarYear(now.getTime()); return {
 function renderSaju(sj) {
   const simple = mode === 'simple';
   const P = sj.pillars, I = sj.info;
+  const CNT = window.UNK ? (() => { const c = [0, 0, 0, 0, 0]; ['day', 'month', 'year'].forEach(k => { c[E.GAN_EL[P[k].s]]++; c[E.ZHI_EL[P[k].b]]++; }); return c; })() : sj.count;
   const cells = [];
   cells.push('<div class="rh"></div>', ...PILLAR_KEYS.map(k => `<div class="colh${k === 'day' ? ' me' : ''}">${PILLAR_KO[k]}${k === 'day' ? ' (나)' : ''}</div>`));
   const godTxt = g => simple ? `<span class="god" title="${GOD_SIMPLE[g] || ''}">${g}</span><span class="area" style="font-size:11px">${(GOD_SIMPLE[g] || '').split('(')[0]}</span>` : `<span class="god">${g}</span>`;
-  cells.push('<div class="rh">십성</div>', ...PILLAR_KEYS.map(k => `<div style="display:grid;gap:0">${godTxt(I[k].stemGod)}</div>`));
-  cells.push('<div class="rh">천간</div>', ...PILLAR_KEYS.map(k => `<div class="ch e${E.GAN_EL[P[k].s]}">${E.GAN[P[k].s]}<small>${E.GAN_KO[P[k].s]}${E.EL[E.GAN_EL[P[k].s]]}</small></div>`));
-  cells.push('<div class="rh">지지</div>', ...PILLAR_KEYS.map(k => `<div class="ch e${E.ZHI_EL[P[k].b]}">${E.ZHI[P[k].b]}<small>${E.ZHI_KO[P[k].b]}${E.EL[E.ZHI_EL[P[k].b]]}</small></div>`));
-  cells.push('<div class="rh">십성</div>', ...PILLAR_KEYS.map(k => `<div style="display:grid;gap:0">${godTxt(I[k].branchGod)}</div>`));
-  cells.push('<div class="rh xp">지장간</div>', ...PILLAR_KEYS.map(k => `<div class="hid xp">${I[k].hidden.map(s => E.GAN[s]).join('')}</div>`));
-  cells.push('<div class="rh xp last">12운성</div>', ...PILLAR_KEYS.map(k => `<div class="xp last">${I[k].stage}</div>`));
+  cells.push('<div class="rh">십성</div>', ...PILLAR_KEYS.map(k => window.UNK && k === 'hour' ? `<div style="opacity:.35;text-align:center">?</div>` : `<div style="display:grid;gap:0">${godTxt(I[k].stemGod)}</div>`));
+  cells.push('<div class="rh">천간</div>', ...PILLAR_KEYS.map(k => window.UNK && k === 'hour' ? `<div style="opacity:.35;text-align:center">?</div>` : `<div class="ch e${E.GAN_EL[P[k].s]}">${E.GAN[P[k].s]}<small>${E.GAN_KO[P[k].s]}${E.EL[E.GAN_EL[P[k].s]]}</small></div>`));
+  cells.push('<div class="rh">지지</div>', ...PILLAR_KEYS.map(k => window.UNK && k === 'hour' ? `<div style="opacity:.35;text-align:center">?</div>` : `<div class="ch e${E.ZHI_EL[P[k].b]}">${E.ZHI[P[k].b]}<small>${E.ZHI_KO[P[k].b]}${E.EL[E.ZHI_EL[P[k].b]]}</small></div>`));
+  cells.push('<div class="rh">십성</div>', ...PILLAR_KEYS.map(k => window.UNK && k === 'hour' ? `<div style="opacity:.35;text-align:center">?</div>` : `<div style="display:grid;gap:0">${godTxt(I[k].branchGod)}</div>`));
+  cells.push('<div class="rh xp">지장간</div>', ...PILLAR_KEYS.map(k => window.UNK && k === 'hour' ? `<div style="opacity:.35;text-align:center">?</div>` : `<div class="hid xp">${I[k].hidden.map(s => E.GAN[s]).join('')}</div>`));
+  cells.push('<div class="rh xp last">12운성</div>', ...PILLAR_KEYS.map(k => window.UNK && k === 'hour' ? `<div style="opacity:.35;text-align:center">?</div>` : `<div class="xp last">${I[k].stage}</div>`));
   $('pillars').innerHTML = cells.join('');
   if (simple) $('pillars').querySelectorAll('div').forEach((el, i, all) => { if (i >= all.length - 15 && i < all.length - 10) el.classList.add('last'); });
 
-  const max = Math.max(...sj.count, 1);
-  $('elbar').innerHTML = sj.count.map((n, e) => `<div class="elrow"><span>${E.EL_HAN[e]} ${simple ? EL_SIMPLE[e].split('(')[0] : E.EL[e]}</span><div class="track"><div class="fill e${e}" style="width:${n / 8 * 100}%"></div></div><b>${n}</b></div>`).join('') +
-    `<p class="area" style="margin:2px 0 0">천간 4 + 지지 4 (지지는 본기 기준)</p>`;
+  const max = Math.max(...CNT, 1);
+  $('elbar').innerHTML = CNT.map((n, e) => `<div class="elrow"><span>${E.EL_HAN[e]} ${simple ? EL_SIMPLE[e].split('(')[0] : E.EL[e]}</span><div class="track"><div class="fill e${e}" style="width:${n / 8 * 100}%"></div></div><b>${n}</b></div>`).join('') +
+    `<p class="area" style="margin:2px 0 0">${window.UNK ? '천간 3 + 지지 3 (시주 제외, 지지는 본기 기준)' : '천간 4 + 지지 4 (지지는 본기 기준)'}</p>`;
 
   const dayStem = P.day.s;
   $('sajuExtra').innerHTML = `<span>일간 <b>${E.GAN[dayStem]}${E.EL_HAN[E.GAN_EL[dayStem]]}</b></span><span>공망 <b>${sj.kong.map(b => E.ZHI[b]).join('')}</b></span><span>대운 <b>${sj.forward ? '순행' : '역행'} · 대운수 ${sj.daeNum}</b> <span class="area">(${sj.startYears.toFixed(2)}년)</span></span>`;
   $('sajuNote').textContent = `절입: ${ymd(sj.jiePrev)} ${sj.jiePrev.toTimeString().slice(0, 5)} → ${ymd(sj.jieNext)} ${sj.jieNext.toTimeString().slice(0, 5)} (기기 시간대 기준)`;
-  const weak = sj.count.map((n, e) => n === 0 ? e : -1).filter(e => e >= 0);
-  const strong = sj.count.indexOf(Math.max(...sj.count));
+  const weak = CNT.map((n, e) => n === 0 ? e : -1).filter(e => e >= 0);
+  const strong = CNT.indexOf(Math.max(...CNT));
   $('sajuSimple').innerHTML = `<p><b>나를 나타내는 글자는 ${E.GAN[dayStem]}(${E.GAN_KO[dayStem]}${E.EL[E.GAN_EL[dayStem]]})예요.</b> 태어난 날의 위 글자로, ${EL_SIMPLE[E.GAN_EL[dayStem]]}의 기운을 타고났다고 봐요.</p>` +
-    `<p>여덟 글자 중 ${EL_SIMPLE[strong].split('(')[0]} 기운이 가장 많아요${weak.length ? `. ${weak.map(e => EL_SIMPLE[e].split('(')[0]).join('·')} 기운은 원국에 없어서, 대운이나 생활 습관으로 채워 주면 좋다고 봐요` : ''}.</p>` +
+    `<p>${window.UNK ? '여섯 글자' : '여덟 글자'} 중 ${EL_SIMPLE[strong].split('(')[0]} 기운이 가장 많아요${weak.length ? `. ${weak.map(e => EL_SIMPLE[e].split('(')[0]).join('·')} 기운은 원국에 없어서, 대운이나 생활 습관으로 채워 주면 좋다고 봐요` : ''}.</p>` +
     `<p>십성은 다른 글자가 나에게 어떤 의미인지를 열 가지로 나눈 거예요. 표의 각 글자 위아래에 적혀 있어요.</p>`;
 
   const now = new Date(); const cur = curDaeun(sj, now); const se = seun(now);
@@ -1088,6 +1092,13 @@ function ziweiText(zw, lunar) {
 }
 
 // ---------- 지금 시기 ----------
+function unknownNotice(id, on, text) {
+  const panel = $(id); if (!panel) return;
+  let n = panel.querySelector(':scope > .unk-note');
+  [...panel.children].forEach(c => { if (!c.classList.contains('unk-note')) c.hidden = on; });
+  if (on && !n) { n = document.createElement('div'); n.className = 'unk-note'; n.style.cssText = 'border:1px dashed currentColor;border-radius:8px;padding:14px 16px;opacity:.8;font-size:14px;line-height:1.6'; panel.prepend(n); }
+  if (n) { n.hidden = !on; if (on) n.innerHTML = '<b style="display:block;margin-bottom:2px">시간 모름</b>' + text; }
+}
 function renderTrio() {
   const simple = mode === 'simple', now = new Date();
   const ch = S.ch, md = ch.dasha.list.find(x => x.start <= now && now < x.end), ad = md && md.subs.find(x => x.start <= now && now < x.end);
@@ -1099,6 +1110,7 @@ function renderTrio() {
     `<div><span class="k">베딕 · 다샤</span><strong>${md ? `${LORD_KO[md.lord]} – ${LORD_KO[ad.lord]}` : '범위 밖'}</strong><p>${md ? (simple ? `${LORD_KO[md.lord]}의 큰 시기 (${md.end.getFullYear()}년까지)` : `MD ~${ymd(md.end)} · AD ~${ymd(ad.end)}`) : ''}</p></div>` +
     `<div><span class="k">사주 · 대운</span><strong>${cur ? `${gzHan(cur)} 대운` : '대운 전'} · ${gzHan(se.p)}년</strong><p>${cur ? (simple ? `${cur.stemGod}·${cur.branchGod}의 10년, 올해는 ${E.tenGod(S.sj.pillars.day.s, se.p.s)}의 해` : `${cur.stemGod}/${cur.branchGod} · ${cur.age}세~ · 세운 ${E.tenGod(S.sj.pillars.day.s, se.p.s)}`) : ''}</p></div>` +
     `<div><span class="k">자미두수 · 대한</span><strong>${dx ? dx.name + ' 대한' : '—'}</strong><p>${dx ? (simple ? `${PALACE_SIMPLE[dx.name]}의 10년 · ${majors(dx)}` : `${E.GAN[dx.stem]}${E.ZHI[dx.branch]} · ${majors(dx)} · 허세 ${ag.age}세 · 유년 ${zw.palaces[E.mod(ag.ly - 4, 12)].name}`) : ''}</p></div>`;
+  if (window.UNK) { const d = $('trio').children; [0, 2].forEach(k => { if (d[k]) d[k].innerHTML = d[k].querySelector('.k').outerHTML + '<strong>—</strong><p>태어난 시각을 알아야 볼 수 있어요.</p>'; }); }
 }
 
 // ---------- AI reading ----------
@@ -1264,6 +1276,7 @@ $('mSimple').setAttribute('aria-pressed', mode === 'simple'); $('mExpert').setAt
 try { const dm = localStorage.getItem('gaon3-daeMode'); if (dm && DAE_MODE_KO[dm]) $('daeMode').value = dm; } catch (e) {}
 $('daeMode').addEventListener('change', () => { try { localStorage.setItem('gaon3-daeMode', $('daeMode').value); } catch (e) {} render(); });
 $('f').addEventListener('submit', e => { e.preventDefault(); render(); });
+$('unk').addEventListener('change', e => { $('tm').disabled = e.target.checked; $('tm').required = !e.target.checked; });
 GaonTime.bind($('tcorr'), () => render());
 if (window.Astronomy) { try { render(); } catch (err) { $('msg').textContent = '계산 중 문제가 생겼어요: ' + err.message; } }
 else $('msg').textContent = '천문 계산 라이브러리를 불러오지 못했어요. 새로고침해 주세요.';

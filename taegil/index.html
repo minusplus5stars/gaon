@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="가온">
+<script src="/lib/astronomy.browser.min.js"></script>
 <script src="/lib/gaon-time.js"></script>
 <script src="/lib/gaon-yongsin.js"></script>
 <style>.gaon-time-help{display:block;font-size:11.5px;line-height:1.45;opacity:.75;font-weight:400;margin-top:2px}</style>
@@ -197,7 +198,7 @@ tr.best td{background:var(--soft)}
   <div id="out" class="res"></div>
 
   <div class="foot">
-    <p>절기는 태양 황경, 손없는날은 합삭(신월) 시각으로 직접 계산합니다. 자시는 23시부터 다음 날로 봅니다. 1987–88년 서머타임과 1954–61년 표준시는 자동 반영됩니다.</p>
+    <p>절기는 태양 황경(VSOP87 천문 계산)으로 분 단위까지, 손없는날은 합삭(신월) 시각으로 계산합니다. 자시는 23시부터 다음 날로 봅니다(23시 날 바뀜). 1948–60·1987–88년 서머타임과 1954–61년 표준시(동경 127.5°)는 자동 반영됩니다.</p>
     <p>강약·용신은 가온 공통 간이 판정이에요. 월지 ×3·일지 ×1.5 가중치로 비겁·인성 비율을 보고(42% 미만 신약, 55% 초과 신강), 방합·삼합·반합과 월령이 돕는 천간합을 반영해요. 상담 시 원국 판단으로 보정해 쓰세요.</p>
     <p>입력한 정보는 이 기기 안에만 저장되고 서버로 보내지지 않아요.</p>
     <p>© 가온 · <a href="https://www.instagram.com/tantan.life/" target="_blank" rel="noopener" style="color:var(--muted)">Instagram @tantan.life</a> · <a href="https://the-path-of-life.tistory.com/" target="_blank" rel="noopener" style="color:var(--muted)">Blog</a></p>
@@ -232,9 +233,7 @@ const argmax=a=>a.indexOf(Math.max(...a)), argmin=a=>a.indexOf(Math.min(...a));
 function jdUTC(y,m,d,h){if(m<=2){y--;m+=12}const A=Math.floor(y/100),B=2-A+Math.floor(A/4);return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+B-1524.5+h/24}
 const toJdn=(y,m,d)=>Math.round(jdUTC(y,m,d,12));
 function fromJdn(J){const a=J+32044,b=Math.floor((4*a+3)/146097),c=a-Math.floor(146097*b/4),d=Math.floor((4*c+3)/1461),e=c-Math.floor(1461*d/4),m=Math.floor((5*e+2)/153);return{y:100*b+d-4800+Math.floor(m/10),m:m+3-12*Math.floor(m/10),d:e-Math.floor((153*m+2)/5)+1}}
-function sunLon(jd){const T=(jd-2451545)/36525,L0=280.46646+36000.76983*T+0.0003032*T*T,M=(357.52911+35999.05029*T-0.0001537*T*T)*RAD;
- const C=(1.914602-0.004817*T-0.000014*T*T)*Math.sin(M)+(0.019993-0.000101*T)*Math.sin(2*M)+0.000289*Math.sin(3*M),om=(125.04-1934.136*T)*RAD;
- return mod(L0+C-0.00569-0.00478*Math.sin(om),360)}
+function sunLon(jd){return Astronomy.SunPosition(Astronomy.MakeTime(new Date((jd-2440587.5)*864e5))).elon} // VSOP87, 절입 분 단위
 function newMoon(k){const T=k/1236.85,s=Math.sin;let j=2451550.09766+29.530588861*k+0.00015437*T*T;const E=1-0.002516*T,
  M=(2.5534+29.1053567*k)*RAD,P=(201.5643+385.81693528*k+0.0107582*T*T)*RAD,F=(160.7108+390.67050284*k-0.0016118*T*T)*RAD,O=(124.7746-1.56375588*k)*RAD;
  j+=-0.4072*s(P)+0.17241*E*s(M)+0.01608*s(2*P)+0.01039*s(2*F)+0.00739*E*s(P-M)-0.00514*E*s(P+M)+0.00208*E*E*s(2*M)-0.00111*s(P-2*F)-0.00057*s(P+2*F)+0.00056*E*s(2*P+M)-0.00042*s(3*P)+0.00042*E*s(M+2*F)+0.00038*E*s(M-2*F)-0.00024*E*s(2*P-M)-0.00017*s(O);
@@ -259,15 +258,17 @@ const tenGod=(d,o)=>GOD[mod(STEM_EL[o]-STEM_EL[d],5)][(d%2)===(o%2)?0:1];
 /* ===== 사주 ===== */
 let S;
 const SEOUL_LON=126.98;
-function tz(y,m,d){const j=toJdn(y,m,d);let std=9;if(j>=toJdn(1954,3,21)&&j<toJdn(1961,8,10))std=8.5;let off=std;
- if((j>=toJdn(1987,5,10)&&j<toJdn(1987,10,11))||(j>=toJdn(1988,5,8)&&j<toJdn(1988,10,9)))off+=1;return{std,off}}
+const KST_FMT=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+function seoulOffMin(ms){const p=KST_FMT.formatToParts(new Date(ms)),g=t=>+p.find(x=>x.type===t).value;return Math.round((Date.UTC(g('year'),g('month')-1,g('day'),g('hour'),g('minute'))-Math.floor(ms/6e4)*6e4)/6e4)}
+function tz(y,m,d,clock){const wall=Date.UTC(y,m-1,d)+(clock==null?12:clock)*36e5;let u=wall-9*36e5;for(let i=0;i<3;i++)u=wall-seoulOffMin(u)*6e4;
+ const offM=seoulOffMin(u),stdM=offM>=600?540:(offM===570?510:offM);return{std:stdM/60,off:offM/60}} // 서머타임·1954~61 표준시 반영
 function kua(y,sex){if(sex!=='M'&&sex!=='F')return null;const r=x=>{while(x>9)x=String(x).split('').reduce((a,b)=>a+ +b,0);return x};const t=r(y%100);let k;
  if(y<2000)k=sex==='M'?r(10-t):r(5+t);else k=sex==='M'?(9-t||9):r(6+t);if(k===5)k=sex==='M'?2:8;return k}
 function makeChart(y,m,d,hh,mm,known,sex){
- const z=tz(y,m,d),clock=known?hh+mm/60:12,jdUT=jdUTC(y,m,d,clock-z.off);
+ const clock=known?hh+mm/60:12,z=tz(y,m,d,clock),jdUT=jdUTC(y,m,d,clock-z.off);
  const L=sunLon(jdUT),mo=Math.floor(mod(L-315,360)/30);let sy=y;if(m<=2&&mo>=10)sy--;
  const yI=mod(sy-4,60),yStem=yI%10,yBr=yI%12,mBr=(mo+2)%12,mStem=mod(yStem*2+2+mo,10);
- const t=jdUT+GaonTime.offsetMs(GaonTime.get(),(jdUT-2440587.5)*864e5,SEOUL_LON,z.std*60)/864e5+0.5;let jdn=Math.floor(t);const lh=(t-jdn)*24;
+ const t=jdUT+GaonTime.offsetMs(GaonTime.get(),(jdUT-2440587.5)*864e5,SEOUL_LON,z.std*60)/864e5+0.5;let jdn=Math.floor(t);let lh=Math.round((t-jdn)*86400)/3600;if(lh>=24){lh-=24;jdn++} // 초 단위 반올림: 경계 시각 오차 방지
  if(!known)jdn=toJdn(y,m,d);if(known&&lh>=23)jdn++;
  const dI=mod(jdn+49,60),dStem=dI%10,dBr=dI%12;let hStem=null,hBr=null;
  if(known){hBr=Math.floor((lh+1)/2)%12;hStem=mod(dStem*2+hBr,10)}
