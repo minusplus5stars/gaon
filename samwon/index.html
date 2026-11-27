@@ -210,6 +210,18 @@ details.cur summary b::after { content: "현재"; margin-left: 8px; font-size: 1
 .sfline b { font-weight: 600; }
 .hua { font-size: 10.5px; font-weight: 700; color: var(--surface); background: var(--brass); border-radius: 3px; padding: 0 3px; margin-left: 2px; vertical-align: 1px; }
 .hua.ji { background: var(--bad); }
+.hua.dxh { background: transparent; color: var(--brass); box-shadow: inset 0 0 0 1px var(--brass); }
+.hua.dxh.ji { color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); }
+.dxbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.dxbar .dxbtn { font: inherit; font-size: 18px; line-height: 1; width: 44px; height: 40px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
+.dxbar .dxbtn:disabled { opacity: .3; cursor: default; }
+.dxbar .dxlab { flex: 1; min-width: 180px; text-align: center; font-size: 14px; line-height: 1.4; }
+.dxbar .dxlab b { font-family: var(--f-display); font-size: 16px; }
+.dxbar .dxlab small { display: block; color: var(--muted); font-size: 12px; }
+.dxbar .dxnow { font: inherit; font-size: 12.5px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--lapis); cursor: pointer; }
+.dxbar .dxnow[aria-pressed="true"] { background: var(--lapis); color: var(--surface); border-color: var(--lapis); }
+.zc .dxn { font-size: 11px; font-weight: 700; color: var(--brass); margin-left: 4px; }
+.f-now { color: var(--surface); background: var(--brass); }
 .zc .foot { display: flex; justify-content: space-between; align-items: end; gap: 6px; border-top: 1px dashed var(--line); padding-top: 3px; }
 .zc .pn { font-family: var(--f-display); font-weight: 700; font-size: 14px; }
 .zc .pn em { font-style: normal; font-size: 11px; color: var(--brass); margin-left: 3px; font-family: var(--f-body); }
@@ -346,9 +358,10 @@ details.cur summary b::after { content: "현재"; margin-left: 8px; font-size: 1
       <div>
         <h2>자미두수 명반</h2>
         <div class="zopts"><label><input type="checkbox" id="showZap" checked>잡성 표시</label><label><input type="checkbox" id="showBr" checked>밝기 표시</label><span class="area">삼방사정 기준</span><button type="button" class="qb" id="qMing">명궁</button><button type="button" class="qb" id="qDx">현재 대한</button><button type="button" class="qb" id="qYn">유년</button><span class="area">· 궁을 누르면 그 궁 기준으로 바뀌어요</span></div>
+        <div class="dxbar" id="dxbar"><button type="button" class="dxbtn" id="dxPrev" aria-label="이전 대한">◀</button><div class="dxlab" id="dxLabel" aria-live="polite"></div><button type="button" class="dxbtn" id="dxNext" aria-label="다음 대한">▶</button><button type="button" class="dxnow" id="dxNow">지금 대한</button></div>
         <p class="sfline" id="sfline"></p>
         <div class="zwbox"><div class="zw" id="zw" aria-label="자미두수 12궁 명반"></div></div>
-        <div class="legend"><span><i style="color:var(--lapis)">굵은 글씨</i> 14주성</span><span><i style="color:var(--wood)">초록</i> 길성</span><span><i style="color:var(--bad)">빨강</i> 흉성(육살·잡흉성)</span><span><i>작은 회색</i> 중성 잡성</span><span>밝기 <i style="color:var(--wood)">묘·왕</i> · 득·리·평 · <i style="color:var(--bad)">불·함</i></span><span><span class="hua">록</span><span class="hua">권</span><span class="hua">과</span><span class="hua ji">기</span> 생년사화</span><span>금색 테두리 = 현재 대한</span><span><i style="color:var(--brass)">실선 삼각형</i> 본궁·삼방</span><span><i style="color:var(--lapis)">점선</i> 대궁</span></div>
+        <div class="legend"><span><i style="color:var(--lapis)">굵은 글씨</i> 14주성</span><span><i style="color:var(--wood)">초록</i> 길성</span><span><i style="color:var(--bad)">빨강</i> 흉성(육살·잡흉성)</span><span><i>작은 회색</i> 중성 잡성</span><span>밝기 <i style="color:var(--wood)">묘·왕</i> · 득·평·한 · <i style="color:var(--bad)">함</i></span><span><span class="hua">록</span><span class="hua">권</span><span class="hua">과</span><span class="hua ji">기</span> 생년사화</span><span>금색 테두리 = 보고 있는 대한 · <b style="color:var(--brass)">대명·대재…</b> 그 대한 기준 궁 이름</span><span><span class="hua dxh">록</span> 대한사화</span><span><i style="color:var(--brass)">실선 삼각형</i> 본궁·삼방</span><span><i style="color:var(--lapis)">점선</i> 대궁</span></div>
       </div>
       <div class="explain" id="zwInfo"></div>
     </div>
@@ -748,7 +761,7 @@ details.cur summary b::after { content: "현재"; margin-left: 8px; font-size: 1
     return { yearStem: yS, yearBranch: yB, ming, shen, ju, juName: JU_NAME[ju], ziweiPos: Z, palaces, forward, effMonth: m };
   }
 
-  const api = { saju, yearPillar, solarYear, toLunar, ziwei, tenGod, GAN, GAN_KO, ZHI, ZHI_KO, ZHI_ANIMAL, EL, EL_HAN, GAN_EL, ZHI_EL, HIDDEN, STAR_KO, PALACE, ganzhi, mod };
+  const api = { saju, yearPillar, solarYear, toLunar, ziwei, tenGod, GAN, GAN_KO, ZHI, ZHI_KO, ZHI_ANIMAL, EL, EL_HAN, GAN_EL, ZHI_EL, HIDDEN, STAR_KO, PALACE, SIHUA, HUA, ganzhi, mod };
   if (typeof module !== 'undefined') module.exports = api; else root.EastCalc = api;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -879,6 +892,7 @@ function render() {
   S = { ch, sj, zw, lunar, name, gender, birthUTC: date.getTime(), localMs };
   renderVedic(ch, name);
   renderSaju(sj);
+  zSel = null; dxView = null;
   if (!UNK) renderZiwei(zw, lunar, name, gender);
   unknownNotice('p-vedic', UNK, '베딕 차트는 태어난 시각으로 라그나(상승궁)와 하우스를 정하고, 달의 위치로 다샤를 계산해요. 시간을 모르면 정확하게 세울 수 없어서 보여 드리지 않아요.');
   unknownNotice('p-ziwei', UNK, '자미두수 명반은 태어난 시(時)로 명궁을 정해요. 시간을 모르면 명반을 세울 수 없어서 보여 드리지 않아요.');
@@ -995,6 +1009,8 @@ function sajuText(sj) {
 // ---------- 자미두수 ----------
 function lunarAgeNow(lunar) { const t = new Date(); const l = E.toLunar(t.getFullYear(), t.getMonth() + 1, t.getDate()); return { age: l.year - lunar.year + 1, ly: l.year }; }
 let zSel = null; // 기준 궁 지지
+let dxView = null; // 보고 있는 대한궁 지지 (null = 지금 나이의 대한)
+const DX_SHORT = { 명궁:'대명', 형제궁:'대형', 부처궁:'대처', 자녀궁:'대자', 재백궁:'대재', 질액궁:'대질', 천이궁:'대천', 노복궁:'대노', 관록궁:'대관', 전택궁:'대전', 복덕궁:'대복', 부모궁:'대부' };
 function zRel(b) { if (zSel === null) return ''; if (b === zSel) return 'sel'; if (b === (zSel + 4) % 12 || b === (zSel + 8) % 12) return 'sf'; if (b === (zSel + 6) % 12) return 'dg'; return ''; }
 function renderZiwei(zw, lunar, name, gender) {
   if (zw && zSel === null) zSel = zw.ming;
@@ -1004,27 +1020,31 @@ function renderZiwei(zw, lunar, name, gender) {
   const simple = mode === 'simple';
   const { age, ly } = lunarAgeNow(lunar);
   const yearBranch = E.mod(ly - 4, 12);
+  const curDx = zw.palaces.find(p => age >= p.daxian[0] && age <= p.daxian[1]) || null;
+  const viewDx = dxView !== null ? zw.palaces[dxView] : curDx;
+  const dxHua = {}; if (viewDx) E.SIHUA[viewDx.stem].forEach((s, i) => { dxHua[s] = E.HUA[i]; });
   for (const p of zw.palaces) {
     const [r, c] = ZW_POS[p.branch];
     const el = document.createElement('div');
-    const inDx = age >= p.daxian[0] && age <= p.daxian[1];
+    const inDx = !!viewDx && p.branch === viewDx.branch;
     const rel = zRel(p.branch);
     el.className = 'zc' + (p.branch === zw.ming ? ' ming' : '') + (inDx ? ' dx' : '') + (rel ? ' ' + rel : '');
     el.tabIndex = 0; el.dataset.b = p.branch; el.setAttribute('role', 'button');
     el.setAttribute('aria-label', `${p.name} ${E.ZHI[p.branch]}, 삼방사정 기준으로 보기`);
     el.style.gridRow = r + 1; el.style.gridColumn = c + 1;
     const major = p.stars.filter(s => s.kind === 'major'), minor = p.stars.filter(s => s.kind === 'good' || s.kind === 'bad'), zap = p.stars.filter(s => s.kind[0] === 'm' && s.kind !== 'major');
-    const huaTag = s => s.hua ? `<span class="hua${s.hua === '화기' ? ' ji' : ''}" title="${s.hua}">${s.hua[1]}</span>` : '';
+    const huaTag = s => (s.hua ? `<span class="hua${s.hua === '화기' ? ' ji' : ''}" title="생년 ${s.hua}">${s.hua[1]}</span>` : '') +
+      (dxHua[s.name] ? `<span class="hua dxh${dxHua[s.name] === '화기' ? ' ji' : ''}" title="대한 ${dxHua[s.name]}">${dxHua[s.name][1]}</span>` : '');
     const brTag = s => s.br && showBr ? `<span class="br b-${s.br}" title="밝기 ${s.br}">${s.br}</span>` : '';
     const nm = s => (simple ? E.STAR_KO[s.name] : `${s.name}`) + brTag(s) + (simple ? '' : `<span class="area" style="font-size:10.5px"> ${E.STAR_KO[s.name]}</span>`);
     const zcls = { mg: 'gd', mn: '', mb: 'bd' };
-    const flags = (rel === 'sel' ? '<span class="f-sel">기준</span>' : rel === 'sf' ? '<span class="f-sf">삼방</span>' : rel === 'dg' ? '<span class="f-dg">대궁</span>' : '') + (p.branch === yearBranch ? '<span class="f-yn">유년</span>' : '');
+    const flags = (rel === 'sel' ? '<span class="f-sel">기준</span>' : rel === 'sf' ? '<span class="f-sf">삼방</span>' : rel === 'dg' ? '<span class="f-dg">대궁</span>' : '') + (p.branch === yearBranch ? '<span class="f-yn">유년</span>' : '') + (curDx && viewDx && curDx.branch !== viewDx.branch && p.branch === curDx.branch ? '<span class="f-now">현재</span>' : '');
     el.innerHTML = `${flags ? `<span class="flags">${flags}</span>` : ''}<div class="stars">` +
       major.map(s => `<span class="mj">${nm(s)}${huaTag(s)}</span>`).join('') +
       (major.length ? '' : '<span class="area">주성 없음</span>') + '</div>' +
       `<div style="display:grid;gap:3px"><div class="stars">${minor.map(s => `<span class="mn ${s.kind === 'good' ? 'gd' : 'bd'}">${simple ? E.STAR_KO[s.name] : s.name}${brTag(s)}${huaTag(s)}</span>`).join('')}${zap.map(s => `<span class="zp ${zcls[s.kind]}" title="${E.STAR_KO[s.name]}">${simple ? E.STAR_KO[s.name] : s.name}</span>`).join('')}</div>` +
       (simple ? `<span class="ps">${PALACE_SIMPLE[p.name]}</span>` : '') +
-      `<div class="foot"><span class="pn">${p.name}${p.isShen ? '<em>신궁</em>' : ''}</span><span style="text-align:right;display:grid"><span class="gzs">${E.GAN[p.stem]}${E.ZHI[p.branch]}</span><span class="dxr">${p.daxian[0]}–${p.daxian[1]}</span><span class="cs xp">${p.cs}</span></span></div></div>`;
+      `<div class="foot"><span class="pn">${p.name}${p.isShen ? '<em>신궁</em>' : ''}${viewDx ? `<span class="dxn">${DX_SHORT[E.PALACE[E.mod(viewDx.branch - p.branch, 12)]]}</span>` : ''}</span><span style="text-align:right;display:grid"><span class="gzs">${E.GAN[p.stem]}${E.ZHI[p.branch]}</span><span class="dxr">${p.daxian[0]}–${p.daxian[1]}</span><span class="cs xp">${p.cs}</span></span></div></div>`;
     box.appendChild(el);
   }
   const ctr = document.createElement('div'); ctr.className = 'zcenter';
@@ -1037,19 +1057,25 @@ function renderZiwei(zw, lunar, name, gender) {
   const majorsK = p => p.stars.filter(s => s.kind === 'major').map(s => E.STAR_KO[s.name] + (s.br ? `(${s.br})` : '')).join('·') || '주성 없음';
   const sp = zw.palaces[zSel], f1 = zw.palaces[(zSel + 4) % 12], f2 = zw.palaces[(zSel + 8) % 12], dg = zw.palaces[(zSel + 6) % 12];
   $('sfline').innerHTML = `<b>${sp.name}</b>(${majorsK(sp)}) 기준 · 삼방 <b>${f1.name}</b>(${majorsK(f1)}), <b>${f2.name}</b>(${majorsK(f2)}) · 대궁 <b>${dg.name}</b>(${majorsK(dg)})`;
-  const dxP = zw.palaces.find(p => age >= p.daxian[0] && age <= p.daxian[1]);
+  const dxP = curDx;
+  { const list = [...zw.palaces].sort((a, b) => a.daxian[0] - b.daxian[0]); const i = viewDx ? list.indexOf(viewDx) : -1;
+    const hl = viewDx ? E.SIHUA[viewDx.stem].map((s, k) => `${E.STAR_KO[s]} ${E.HUA[k]}`).join(' · ') : '';
+    $('dxLabel').innerHTML = viewDx ? `<b>${viewDx.daxian[0]}–${viewDx.daxian[1]}세 · ${viewDx.name} 대한</b> ${E.GAN[viewDx.stem]}${E.ZHI[viewDx.branch]}${curDx && viewDx === curDx ? ' (지금)' : ''}<small>대한사화(${E.GAN[viewDx.stem]}) ${hl}</small>` : '대한 범위 밖';
+    $('dxPrev').disabled = i <= 0; $('dxNext').disabled = i < 0 || i >= list.length - 1;
+    $('dxPrev').dataset.b = i > 0 ? list[i - 1].branch : ''; $('dxNext').dataset.b = i >= 0 && i < list.length - 1 ? list[i + 1].branch : '';
+    $('dxNow').setAttribute('aria-pressed', !!curDx && viewDx === curDx); }
   $('qMing').setAttribute('aria-pressed', zSel === zw.ming); $('qDx').setAttribute('aria-pressed', !!dxP && zSel === dxP.branch && zSel !== zw.ming); $('qYn').setAttribute('aria-pressed', zSel === yearBranch && zSel !== zw.ming && !(dxP && zSel === dxP.branch));
   $('qDx').dataset.b = dxP ? dxP.branch : ''; $('qYn').dataset.b = yearBranch;
-  const ming = zw.palaces[zw.ming], dx = zw.palaces.find(p => age >= p.daxian[0] && age <= p.daxian[1]);
+  const ming = zw.palaces[zw.ming], dx = viewDx;
   const majors = p => p.stars.filter(s => s.kind === 'major').map(s => E.STAR_KO[s.name]).join('·') || '주성 없음';
   const huaList = zw.palaces.flatMap(p => p.stars.filter(s => s.hua).map(s => `${E.STAR_KO[s.name]} ${s.hua}(${p.name})`));
   $('zwInfo').innerHTML = simple
     ? `<p><b>나를 나타내는 명궁에는 ${majors(ming)}이(가) 있어요.</b> 자미두수는 열두 칸(궁)이 각각 삶의 영역을 맡고, 그 칸에 들어온 별로 성향을 읽어요.</p>` +
-      (dx ? `<p>지금(한국식 ${age}세)은 <b>${dx.name}</b>(${PALACE_SIMPLE[dx.name]}) 칸이 10년 흐름을 이끄는 시기예요. 테두리로 표시했어요.</p>` : '') +
+      (dx ? `<p>${dx === curDx ? `지금(한국식 ${age}세)은` : `${dx.daxian[0]}–${dx.daxian[1]}세에는`} <b>${dx.name}</b>(${PALACE_SIMPLE[dx.name]}) 칸이 10년 흐름을 이끌어요. 테두리로 표시했고, 그 10년의 네 가지 변화는 ${E.SIHUA[dx.stem].map((s, k) => `${E.STAR_KO[s]} ${E.HUA[k]}`).join(', ')}이에요. ◀ ▶로 다른 대한도 넘겨 볼 수 있어요.</p>` : '') +
       `<p>태어난 해가 정해 주는 네 가지 변화(록·권·과·기): ${huaList.join(', ')}.</p>`
     : `<p><b>${zw.juName}</b>, 자미성 ${E.ZHI[zw.ziweiPos]}궁. 명궁 ${E.GAN[ming.stem]}${E.ZHI[ming.branch]}(${majors(ming)}), 신궁은 ${zw.palaces[zw.shen].name}.</p>` +
       `<p>생년사화(${E.GAN[zw.yearStem]}): ${huaList.join(', ')}.</p>` +
-      (dx ? `<p>현재 허세 ${age}세 → 대한 ${dx.name} ${E.GAN[dx.stem]}${E.ZHI[dx.branch]} (${dx.daxian[0]}–${dx.daxian[1]}), 주성 ${majors(dx)}. ${ly}년 유년궁은 ${zw.palaces[yearBranch].name}.</p>` : '') +
+      (dx ? `<p>${dx === curDx ? `현재 허세 ${age}세 → ` : '보고 있는 '}대한 ${dx.name} ${E.GAN[dx.stem]}${E.ZHI[dx.branch]} (${dx.daxian[0]}–${dx.daxian[1]}), 주성 ${majors(dx)}. 대한사화 ${E.SIHUA[dx.stem].map((s, k) => `${E.STAR_KO[s]} ${E.HUA[k]}(${zw.palaces.find(q => q.stars.some(t => t.name === s)) ? zw.palaces.find(q => q.stars.some(t => t.name === s)).name : '-'})`).join(', ')}. ${ly}년 유년궁은 ${zw.palaces[yearBranch].name}.</p>` : '') +
       (lunar.leap ? `<p class="area">윤달생: ${lunar.day <= 15 ? '15일 이전이라 같은 달' : '16일 이후라 다음 달'}(${zw.effMonth}월)로 명궁을 세웠어요.</p>` : '');
 }
 function drawZLines() {
@@ -1070,7 +1096,11 @@ function selectPalace(b) { if (!S || !S.zw || isNaN(b)) return; zSel = b; render
 $('zw').addEventListener('click', e => { const c = e.target.closest('.zc'); if (c) selectPalace(+c.dataset.b); });
 $('zw').addEventListener('keydown', e => { const c = e.target.closest('.zc'); if (c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); selectPalace(+c.dataset.b); } });
 $('qMing').addEventListener('click', () => S && S.zw && selectPalace(S.zw.ming));
-$('qDx').addEventListener('click', () => selectPalace(parseInt($('qDx').dataset.b)));
+$('qDx').addEventListener('click', () => { dxView = null; selectPalace(parseInt($('qDx').dataset.b)); });
+const stepDx = b => { if (isNaN(b)) return; dxView = b; selectPalace(b); };
+$('dxPrev').addEventListener('click', () => stepDx(parseInt($('dxPrev').dataset.b)));
+$('dxNext').addEventListener('click', () => stepDx(parseInt($('dxNext').dataset.b)));
+$('dxNow').addEventListener('click', () => { if (!S || !S.zw) return; dxView = null; const { age } = lunarAgeNow(S.lunar); const c = S.zw.palaces.find(p => age >= p.daxian[0] && age <= p.daxian[1]); c ? selectPalace(c.branch) : selectPalace(S.zw.ming); });
 $('qYn').addEventListener('click', () => selectPalace(parseInt($('qYn').dataset.b)));
 try { new ResizeObserver(() => drawZLines()).observe($('zw')); } catch (e) { addEventListener('resize', drawZLines); }
 function ziweiText(zw, lunar) {
