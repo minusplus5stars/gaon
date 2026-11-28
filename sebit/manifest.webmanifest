@@ -1,0 +1,30 @@
+{
+  "name": "가온 세빛",
+  "short_name": "세빛",
+  "description": "베딕·사주·자미두수 세 빛으로 보는 가온 상담 차트",
+  "lang": "ko",
+  "id": "/sebit/",
+  "start_url": "/sebit/",
+  "scope": "/sebit/",
+  "display": "standalone",
+  "background_color": "#1C2742",
+  "theme_color": "#1C2742",
+  "icons": [
+    {
+      "src": "/icons/sebit-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/sebit-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/sebit-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

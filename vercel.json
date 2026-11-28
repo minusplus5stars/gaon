@@ -1,0 +1,14 @@
+{
+  "redirects": [
+    {
+      "source": "/samwon",
+      "destination": "/sebit/",
+      "permanent": true
+    },
+    {
+      "source": "/samwon/:path*",
+      "destination": "/sebit/:path*",
+      "permanent": true
+    }
+  ]
+}
